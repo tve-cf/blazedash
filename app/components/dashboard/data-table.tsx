@@ -110,6 +110,19 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
+  // Calculate subtotals for numeric columns
+  const subtotals = visibleColumns.reduce((acc, column) => {
+    if (column.key === 'metric') {
+      acc[column.key] = 'Subtotal';
+    } else {
+      acc[column.key] = filteredData.reduce((sum, item) => {
+        const value = getNestedValue(item, column.key);
+        return typeof value === 'number' ? sum + value : sum;
+      }, 0);
+    }
+    return acc;
+  }, {} as Record<string, any>);
+
   const toggleColumn = (key: string) => {
     setColumns(
       columns.map((col) =>
@@ -200,6 +213,13 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
                 ))}
               </tr>
             ))}
+            <tr className="border-t-2 font-medium bg-muted/50">
+              {visibleColumns.map((column) => (
+                <td key={`subtotal-${column.key}`} className="py-3 px-4">
+                  {formatValue(subtotals[column.key], column.key)}
+                </td>
+              ))}
+            </tr>
           </tbody>
         </table>
       </div>
