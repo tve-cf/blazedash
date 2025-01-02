@@ -7,6 +7,7 @@ import { exportData, type ExportFormat } from "~/lib/export";
 import type { AnalyticsData, Column, Filters } from "~/types/analytics";
 
 const initialColumns: Column[] = [
+  { key: "no", label: "No.", visible: true },
   { key: "metric", label: "Hostname", visible: true },
   { 
     key: "total.requests", 
@@ -81,8 +82,16 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
       return '-';
     }
     if (key.includes('dataTransferBytes')) {
-      // Convert bytes to MB and format
-      const mb = value / (1024 * 1024);
+      // Convert bytes to MB, GB, or TB
+      const mb = value / (1000 * 1000);
+      if (mb >= 1000000) {
+        const tb = mb / 1000000;
+        return `${tb.toFixed(2)} TB`;
+      }
+      if (mb >= 1000) {
+        const gb = mb / 1000;
+        return `${gb.toFixed(2)} GB`;
+      }
       return `${mb.toFixed(2)} MB`;
     }
     if (typeof value === 'number') {
@@ -146,7 +155,7 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
       <TableControls
         onSearch={setSearch}
         searchValue={search}
-        columns={columns}
+        columns={columns.filter(col => col.key !== 'no')}
         onToggleColumn={toggleColumn}
         onExport={onExport}
         isExporting={isExporting}
@@ -191,24 +200,30 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
             <tr className="border-b transition-colors hover:bg-primary/10 data-[state=selected]:bg-primary/20 text-left">
               {visibleColumns.map((column) => (
                 <th key={column.key} className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => handleSort(column.key)}
-                    className="inline-flex items-center text-sm font-semibold hover:text-primary transition-colors duration-200"
-                  >
-                    {column.label}
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </button>
+                  {column.key === 'no' ? (
+                    <span className="text-sm font-semibold">{column.label}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSort(column.key)}
+                      className="inline-flex items-center text-sm font-semibold hover:text-primary transition-colors duration-200"
+                    >
+                      {column.label}
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </button>
+                  )}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {paginatedData.map((item) => (
+            {paginatedData.map((item, index) => (
               <tr key={item.metric} className="border-b">
                 {visibleColumns.map((column) => (
                   <td key={`${item.metric}-${column.key}`} className="py-3 px-4">
-                    {formatValue(getNestedValue(item, column.key), column.key)}
+                    {column.key === 'no' 
+                      ? startIndex + index + 1
+                      : formatValue(getNestedValue(item, column.key), column.key)}
                   </td>
                 ))}
               </tr>
@@ -216,7 +231,9 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
             <tr className="border-t-2 font-medium bg-muted/50">
               {visibleColumns.map((column) => (
                 <td key={`subtotal-${column.key}`} className="py-3 px-4">
-                  {formatValue(subtotals[column.key], column.key)}
+                  {column.key === 'no' 
+                    ? ''
+                    : formatValue(subtotals[column.key], column.key)}
                 </td>
               ))}
             </tr>
