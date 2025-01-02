@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect";
 
 type Theme = "dark" | "light" | "system";
 
@@ -11,42 +10,55 @@ interface ThemeProviderProps {
 interface ThemeProviderState {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  systemTheme: Theme;
 }
 
 const initialState: ThemeProviderState = {
   theme: "light",
   setTheme: () => null,
+  systemTheme: "light",
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+
+function getSystemTheme(): Theme {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
 
 export function ThemeProvider({
   children,
   defaultTheme = "light",
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-
-  useIsomorphicLayoutEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-
-      root.classList.add(systemTheme);
-      return;
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return defaultTheme;
+    try {
+      const stored = localStorage.getItem("theme") as Theme;
+      return stored || defaultTheme;
+    } catch {
+      return defaultTheme;
     }
+  });
+  
+  const [systemTheme, setSystemTheme] = useState<Theme>(getSystemTheme());
 
-    root.classList.add(theme);
-  }, [theme]);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => setSystemTheme(getSystemTheme());
+    
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const value = {
     theme,
+    systemTheme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem("theme", theme);
+      try {
+        localStorage.setItem("theme", theme);
+      } catch (e) {
+        // Handle localStorage errors silently
+      }
       setTheme(theme);
     },
   };
@@ -66,3 +78,8 @@ export const useTheme = () => {
 
   return context;
 };
+
+export function useThemeClass() {
+  const { theme, systemTheme } = useTheme();
+  return theme === "system" ? systemTheme : theme;
+}

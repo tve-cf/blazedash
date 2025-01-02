@@ -9,7 +9,7 @@ import type { LinksFunction } from "@remix-run/cloudflare";
 import { Header } from "./components/layout/header";
 import { DashboardNav } from "./components/layout/dashboard-nav";
 import { AnalyticsProvider } from "./context/analytics-context";
-import { ThemeProvider } from "./hooks/use-theme";
+import { ThemeProvider, useThemeClass } from "./hooks/use-theme";
 
 import "./tailwind.css";
 
@@ -26,43 +26,40 @@ export const links: LinksFunction = () => [
   },
 ];
 
-export default function App() {
+function Document({ children }: { children: React.ReactNode }) {
+  const themeClass = useThemeClass();
+  
   return (
-    <html lang="en">
+    <html lang="en" className={themeClass}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark')
-                } else {
-                  document.documentElement.classList.remove('dark')
-                }
-              } catch (_) {}
-            `,
-          }}
-        />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider defaultTheme="light">
-          <AnalyticsProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              <DashboardNav />
-              <main className="flex-1 p-4 w-full">
-                <Outlet />
-              </main>
-            </div>
-          </AnalyticsProvider>
-        </ThemeProvider>
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider defaultTheme="light">
+      <Document>
+        <AnalyticsProvider>
+          <div className="relative flex min-h-screen flex-col">
+            <Header />
+            <DashboardNav />
+            <main className="flex-1 p-4 w-full">
+              <Outlet />
+            </main>
+          </div>
+        </AnalyticsProvider>
+      </Document>
+    </ThemeProvider>
   );
 }
