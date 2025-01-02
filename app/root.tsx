@@ -49,7 +49,7 @@ export default function App() {
         />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider defaultTheme="system">
+        <ThemeProvider defaultTheme="light">
           <AnalyticsProvider>
             <div className="relative flex min-h-screen flex-col">
               <Header />
