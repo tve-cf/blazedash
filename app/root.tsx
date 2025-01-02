@@ -1,4 +1,3 @@
-import type { LinksFunction } from "@remix-run/cloudflare";
 import {
   Links,
   Meta,
@@ -6,6 +5,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import type { LinksFunction } from "@remix-run/cloudflare";
+import { Header } from "./components/layout/header";
+import { DashboardNav } from "./components/layout/dashboard-nav";
+import { AnalyticsProvider } from "./context/analytics-context";
+import { ThemeProvider } from "./hooks/use-theme";
 
 import "./tailwind.css";
 
@@ -22,7 +26,7 @@ export const links: LinksFunction = () => [
   },
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export default function App() {
   return (
     <html lang="en">
       <head>
@@ -30,16 +34,35 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark')
+                } else {
+                  document.documentElement.classList.remove('dark')
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
       </head>
-      <body>
-        {children}
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <ThemeProvider defaultTheme="system">
+          <AnalyticsProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <DashboardNav />
+              <main className="flex-1 p-4 w-full">
+                <Outlet />
+              </main>
+            </div>
+          </AnalyticsProvider>
+        </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
   );
-}
-
-export default function App() {
-  return <Outlet />;
 }

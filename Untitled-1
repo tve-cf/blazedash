@@ -1,0 +1,51 @@
+interface Analytics {
+  data: {
+    viewer: {
+      __typename: string;
+      scope: Array<{
+        api: Array<{
+          __typename: string;
+          avg: {
+            __typename: string;
+            sampleInterval: number;
+          };
+          count: number;
+          dimensions: {
+            __typename: string;
+            metric: string;
+          };
+          sum: {
+            __typename: string;
+            edgeResponseBytes: number;
+          };
+        }>;
+        pageviews: Array<{
+          __typename: string;
+          avg: {
+            __typename: string;
+            sampleInterval: number | string;
+          };
+          count: number;
+          dimensions: {
+            __typename: string;
+            metric: string;
+          };
+        }>;
+        total: Array<{
+          __typename: string;
+          dimensions: {
+            __typename: string;
+            metric: string;
+          };
+          request: number;
+          sum: {
+            __typename: string;
+            dataTransferBytes: number;
+            visits: number;
+          };
+        }>;
+      }>;
+    };
+  };
+  errors: null;
+} 
