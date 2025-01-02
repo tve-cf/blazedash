@@ -1,0 +1,5 @@
+this is a remix v2 app
+
+use loader and action
+
+loader should return object dont return json({}) which deprecates just straight up return the object

@@ -22,6 +22,7 @@ interface ZoneSelectProps {
   onChange: (value: string[]) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function ZoneSelect({
@@ -30,6 +31,7 @@ export function ZoneSelect({
   onChange,
   placeholder = "Select zones...",
   className,
+  disabled = false,
 }: ZoneSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -45,6 +47,7 @@ export function ZoneSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          disabled={disabled}
           className={cn("w-[300px] justify-between text-left font-normal", className)}
         >
           <span className="truncate">
