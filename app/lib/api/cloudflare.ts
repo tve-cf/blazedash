@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CloudflareAPIError } from "~/lib/errors";
 import { CloudflareResponseSchema } from "~/lib/schemas/cloudflare";
-import { BASE_URL, fetchWithTimeout } from "./base.server";
+import { BASE_URL, fetchWithTimeout } from "./base";
 
 export async function fetchCloudflare<T>(
   endpoint: string,

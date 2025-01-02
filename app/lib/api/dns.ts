@@ -1,4 +1,4 @@
-import { fetchCloudflare } from "./cloudflare.server";
+import { fetchCloudflare } from "./cloudflare";
 import { DNSRecordSchema } from "~/lib/schemas/cloudflare";
 import type { CloudflareResponse, DNSRecord } from "~/types/cloudflare";
 

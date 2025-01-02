@@ -1,4 +1,4 @@
-import { fetchCloudflare } from "./cloudflare.server";
+import { fetchCloudflare } from "./cloudflare";
 import { ZoneSchema } from "~/lib/schemas/cloudflare";
 import type { CloudflareResponse, Zone } from "~/types/cloudflare";
 
