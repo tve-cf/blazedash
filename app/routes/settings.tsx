@@ -59,6 +59,7 @@ export default function Settings() {
       localStorage.setItem('cfApiToken', apiToken);
       if ('zones' in actionData) {
         localStorage.setItem('cfZones', JSON.stringify(actionData.zones));
+        window.dispatchEvent(new Event('zonesUpdated'));
       }
     }
   }, [actionData, apiToken]);

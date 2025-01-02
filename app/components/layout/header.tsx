@@ -5,39 +5,15 @@ import { DateRangePicker } from "~/components/ui/date-range-picker";
 import { useAnalytics } from "~/context/analytics-context";
 import { ThemeSwitcher } from "~/components/ui/theme-switcher";
 import { Button } from "../ui/button";
-import type { DateRange } from "react-day-picker";
-import { useEffect, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import type { Zone } from "~/types/cloudflare";
 
 export function Header() {
-  const { selectedZones, setSelectedZones, dateRange, setDateRange } = useAnalytics();
-  const location = useLocation();
-  const [hasApiToken, setHasApiToken] = useState(false);
-  const [zones, setZones] = useState<Array<{ label: string; value: string }>>([]);
-
-  useEffect(() => {
-    const token = localStorage.getItem('cfApiToken');
-    setHasApiToken(!!token);
-
-    const storedZones = localStorage.getItem('cfZones');
-    if (storedZones) {
-      try {
-        const parsedZones = JSON.parse(storedZones) as Zone[];
-        setZones(parsedZones.map(zone => ({
-          label: zone.name,
-          value: zone.id
-        })));
-      } catch (error) {
-        console.error('Error parsing zones:', error);
-      }
-    }
-  }, []);
+  const { selectedZones, setSelectedZones, dateRange, setDateRange, zones, hasApiToken } = useAnalytics();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
