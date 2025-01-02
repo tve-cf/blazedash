@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { json, type ActionFunctionArgs } from "@remix-run/node";
-import { getZones } from "~/lib/api/zones.server";
+import { getZones } from "~/lib/api/zones";
 import type { Zone } from "~/types/cloudflare";
 
 type ActionData = 
@@ -19,7 +19,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const apiToken = formData.get("apiToken");
 
   if (!apiToken || typeof apiToken !== "string") {
-    return json<ActionData>(
+    return Response.json(
       { success: false, error: "API token is required" },
       { status: 400 }
     );
@@ -27,13 +27,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const zones = await getZones(apiToken);
-    return json<ActionData>({ 
+    return Response.json({ 
       success: true, 
       zones: zones.result,
       message: "API token saved and zones loaded successfully" 
     });
   } catch (error) {
-    return json<ActionData>({ 
+    console.error(error);
+    return Response.json({ 
       success: false, 
       error: error instanceof Error ? error.message : "Failed to load zones" 
     }, { status: 500 });
@@ -41,7 +42,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Settings() {
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [apiToken, setApiToken] = useState('');
   const isLoading = navigation.state === "submitting";
@@ -54,36 +55,13 @@ export default function Settings() {
   }, []);
 
   useEffect(() => {
-    if (actionData?.success) {
+    if (actionData && actionData.success) {
       localStorage.setItem('cfApiToken', apiToken);
       if ('zones' in actionData) {
         localStorage.setItem('cfZones', JSON.stringify(actionData.zones));
       }
     }
   }, [actionData, apiToken]);
-
-  const handleReload = async () => {
-    const form = new FormData();
-    form.append("apiToken", apiToken);
-    
-    try {
-      const response = await fetch("?index", {
-        method: "POST",
-        body: form,
-      });
-      
-      const data = await response.json() as ActionData;
-      if (data.success && 'zones' in data) {
-        localStorage.setItem('cfZones', JSON.stringify(data.zones));
-        alert('Zones reloaded successfully!');
-      } else if (!data.success) {
-        alert(data.error || 'Failed to reload zones');
-      }
-    } catch (error) {
-      alert('Failed to reload zones');
-      console.error('Error reloading zones:', error);
-    }
-  };
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -101,16 +79,17 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <Label htmlFor="apiToken">API Token</Label>
                 {apiToken && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleReload}
-                    disabled={isLoading}
-                  >
-                    <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-                    Reload Zones
-                  </Button>
+                  <div>
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      disabled={isLoading}
+                    >
+                      <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+                      Reload Zones
+                    </Button>
+                  </div>
                 )}
               </div>
               <Input
