@@ -1,17 +1,19 @@
 import { DataTable } from "./data-table";
 import { ControlPanel } from "./control-panel";
-import type { Filters, ExportFormat } from "~/types/analytics";
+import type { Filters, ExportFormat, AnalyticsData } from "~/types/analytics";
 
 interface AnalyticsSectionProps {
   onFiltersChange: (filters: Filters) => void;
   onExport: (format: ExportFormat) => void;
   isExporting: boolean;
+  analyticsData?: AnalyticsData[];
 }
 
 export function AnalyticsSection({ 
   onFiltersChange, 
   onExport,
-  isExporting 
+  isExporting,
+  analyticsData = []
 }: AnalyticsSectionProps) {
   return (
     <div className="space-y-6">
@@ -23,6 +25,7 @@ export function AnalyticsSection({
       </div>
 
       <DataTable 
+        data={analyticsData}
         onFiltersChange={onFiltersChange}
         onExport={onExport}
         isExporting={isExporting}

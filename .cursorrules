@@ -2,4 +2,6 @@ this is a remix v2 app with cloudflare pages. so don't use @remix-run/node!!!
 
 use loader and action
 
-loader should return object dont return json({}) which deprecates just straight up return the object
+loader should return object dont return json({}) or defer({}) which deprecates just straight up return the object. if need promise the { somePromise: promise }
+
+use Response.json() to return json. dont use json()

@@ -71,5 +71,5 @@ export interface AnalyticsData {
       }>;
     };
   };
-  errors: null;
+  errors: string | null;
 }

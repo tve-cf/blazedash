@@ -1,64 +1,18 @@
 import { getDateRange } from "~/lib/date";
 import type { CloudflareResponse, AnalyticsData } from "~/types/cloudflare";
 
-const ANALYTICS_QUERY = `
-  query GetZoneTopNs(
-  $zoneTag: string,
-  $filter: ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,
-  $pageviewsFilter: ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,
-  $apiFilter: ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,
-) {
-    viewer {
-        scope: zones(filter: {zoneTag: $zoneTag}) {
-        total: httpRequestsAdaptiveGroups(filter: $filter, limit: 10) {
-            request: count
-            sum {
-              dataTransferBytes: edgeResponseBytes
-              visits
-            __typename
-            }
-            dimensions {
-              metric: clientRequestHTTPHost
-              __typename
-            }
-            __typename
-        }
-        pageviews: httpRequestsAdaptiveGroups(limit: 5000, filter: $pageviewsFilter) {
-          count
-          avg {
-            sampleInterval
-            __typename
-          }
-          dimensions {
-            # ts: datetimeHour
-            metric: clientRequestHTTPHost
-            __typename
-          }
-          __typename
-        }
-        api: httpRequestsAdaptiveGroups(limit: 5000, filter: $apiFilter) {
-          count
-          avg {
-            sampleInterval
-            __typename
-          }
-          sum {
-            edgeResponseBytes
-            __typename
-          }
-          dimensions {
-            # ts: datetimeHour
-            metric: clientRequestHTTPHost
-            __typename
-          }
-          __typename
-        }
-        __typename
-    }
-  }
-`;
+interface AnalyticsVariables {
+  zoneTags: string[];
+  accountTag: string;
+  filter: any;
+  pageviewsFilter: any;
+  apiFilter: any;
+  order: string;
+}
 
-async function queryGraphQL(apiToken: string, query: string, variables: any) {
+const ANALYTICS_QUERY = `query GetZoneTopNs($zoneTags:[string!],$filter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,$pageviewsFilter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,$apiFilter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!){viewer{scope:zones(filter:{zoneTag_in:$zoneTags}){total:httpRequestsAdaptiveGroups(filter:$filter,limit:5000){request:count sum{dataTransferBytes:edgeResponseBytes visits __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}pageviews:httpRequestsAdaptiveGroups(limit:5000,filter:$pageviewsFilter){request:count avg{sampleInterval __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}api:httpRequestsAdaptiveGroups(limit:5000,filter:$apiFilter){request:count avg{sampleInterval __typename}sum{edgeResponseBytes __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}__typename}}}`;
+
+async function queryGraphQL<T>(apiToken: string, query: string, variables: AnalyticsVariables): Promise<T> {
   const response = await fetch("https://api.cloudflare.com/client/v4/graphql", {
     method: "POST",
     headers: {
@@ -71,8 +25,8 @@ async function queryGraphQL(apiToken: string, query: string, variables: any) {
     }),
   });
 
-  const responseData = await response.json();
-  
+  const responseData = await response.json<T>();
+
   if (!response.ok) {
     console.error('GraphQL Error Response:', {
       status: response.status,
@@ -85,60 +39,111 @@ async function queryGraphQL(apiToken: string, query: string, variables: any) {
   return responseData;
 }
 
+function groupByMetric(data: AnalyticsData) {
+  const groupedObj: Record<string, any> = {};
+
+  // Process all scopes
+  data.data.viewer.scope.forEach(scope => {
+    // Helper function to process each section
+    const processSection = (section: any[], sectionName: string) => {
+      section.forEach(item => {
+        const metric = item.dimensions.metric;
+        if (!groupedObj[metric]) {
+          groupedObj[metric] = {
+            metric: metric
+          };
+        }
+        
+        // Initialize section if it doesn't exist
+        if (!groupedObj[metric][sectionName]) {
+          groupedObj[metric][sectionName] = {
+            requests: 0,
+            dataTransferBytes: 0,
+            visits: 0
+          };
+        }
+        
+        // Add values from this scope
+        groupedObj[metric][sectionName].requests += item.request || 0;
+        groupedObj[metric][sectionName].dataTransferBytes += item.sum?.dataTransferBytes || 0;
+        groupedObj[metric][sectionName].visits += item.sum?.visits || 0;
+      });
+    };
+
+    // Process each section
+    if (scope.api) {
+      processSection(scope.api, 'api');
+    }
+    if (scope.pageviews) {
+      processSection(scope.pageviews, 'pageviews');
+    }
+    if (scope.total) {
+      processSection(scope.total, 'total');
+    }
+  });
+
+  // Convert object to array
+  return Object.values(groupedObj);
+}
+
 export async function getAnalytics(
   apiToken: string,
-  zoneId: string,
-  hostname: string
-): Promise<CloudflareResponse<AnalyticsData>> {
-  const { since, until } = getDateRange();
-
-  const variables = {
-    zoneTag: zoneId,
-    dateGeq: since,
-    dateLeq: until,
-    host: hostname,
+  zoneIds: string[],
+  since: string,
+  until: string
+) {
+  const variables: AnalyticsVariables = {
+    zoneTags: zoneIds,
+    accountTag: "",
+    filter: {
+      AND: [
+        {
+          datetime_geq: since,
+          datetime_leq: until
+        },
+        { requestSource: "eyeball" }
+      ]
+    },
+    pageviewsFilter: {
+      AND: [
+        {
+          datetime_geq: since,
+          datetime_leq: until
+        },
+        { requestSource: "eyeball" },
+        {
+          AND: [
+            {
+              edgeResponseStatus: 200,
+              edgeResponseContentTypeName: "html"
+            }
+          ]
+        }
+      ]
+    },
+    apiFilter: {
+      AND: [
+        { datetime_geq: since, datetime_leq: until },
+        { OR: [{ edgeResponseContentTypeName: "json" }, { edgeResponseContentTypeName: "xml" }, { edgeResponseContentTypeName: "grpc" }, { edgeResponseContentTypeName: "grpcweb" }] },
+        { requestSource: "eyeball" }
+      ]
+    },
+    order: "",
   };
 
-  const data = await queryGraphQL(apiToken, ANALYTICS_QUERY, variables);
-  
-  // Transform GraphQL response to match existing schema
-  const requests = data.data?.viewer?.zones?.[0]?.httpRequestsAdaptive ?? [];
-  
-  // If no analytics data is found, return zeros
-  if (!requests || requests.length === 0) {
-    return {
-      success: true,
-      errors: [],
-      messages: [],
-      result: {
-        totals: {
-          requests: 0,
-          bytes: 0,
-          threats: 0,
-          cachedBytes: 0,
-          cachedRequests: 0,
-        },
-        httpRequestsAdaptive: [],
-      },
-    };
-  }
-  
-  // Calculate totals from the requests
-  const cachedRequests = requests.filter((r: any) => r.cacheStatus === 'HIT').length;
-  
+  const data = await queryGraphQL<AnalyticsData>(apiToken, ANALYTICS_QUERY, variables);
+
+
+  // Group the data by metric
+  const groupedData = groupByMetric(data);
+
+  console.log("groupedData", groupedData);
+
+  // Return in the correct structure matching AnalyticsData type
   return {
     success: true,
     errors: [],
     messages: [],
-    result: {
-      totals: {
-        requests: requests.length,
-        bytes: 0,
-        threats: requests.filter((r: any) => r.botScore < 30).length,
-        cachedBytes: 0,
-        cachedRequests,
-      },
-      httpRequestsAdaptive: requests,
-    },
+    result: groupedData
   };
 }

@@ -5,18 +5,38 @@ import { TableControls } from "./table-controls";
 import { FilterDrawer } from "./filter-drawer";
 import { exportData, type ExportFormat } from "~/lib/export";
 import type { AnalyticsData, Column, Filters } from "~/types/analytics";
-import { mockData } from "~/data/mock-analytics";
 
 const initialColumns: Column[] = [
-  { key: "hostname", label: "Hostname", visible: true },
-  { key: "requests", label: "Requests", visible: true },
-  { key: "bandwidth", label: "Bandwidth", visible: true },
-  { key: "cacheRate", label: "Cache Rate", visible: true },
-  { key: "status", label: "Status", visible: true },
+  { key: "metric", label: "Hostname", visible: true },
+  { 
+    key: "total.requests", 
+    label: "Total Requests", 
+    visible: true 
+  },
+  { 
+    key: "total.dataTransferBytes", 
+    label: "Total Bandwidth", 
+    visible: true 
+  },
+  { 
+    key: "total.visits", 
+    label: "Total Visits", 
+    visible: true 
+  },
+  { 
+    key: "api.requests", 
+    label: "API Requests", 
+    visible: true 
+  },
+  { 
+    key: "pageviews.requests", 
+    label: "Page Views", 
+    visible: true 
+  }
 ];
 
-
 interface DataTableProps {
+  data: AnalyticsData[];
   onFiltersChange: (filters: Filters) => void;
   onExport: (format: ExportFormat) => void;
   isExporting: boolean;
@@ -30,8 +50,8 @@ const initialFilters: Filters = {
   clientTypes: [],
 };
 
-export function DataTable({ onFiltersChange, onExport, isExporting }: DataTableProps) {
-  const [sortField, setSortField] = useState<keyof AnalyticsData>("requests");
+export function DataTable({ data, onFiltersChange, onExport, isExporting }: DataTableProps) {
+  const [sortField, setSortField] = useState<string>("total.requests");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [columns, setColumns] = useState<Column[]>(initialColumns);
   const [search, setSearch] = useState("");
@@ -39,11 +59,11 @@ export function DataTable({ onFiltersChange, onExport, isExporting }: DataTableP
   const [isPending, startTransition] = useTransition();
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>(initialFilters);
-  const itemsPerPage = 4;
+  const itemsPerPage = 1000;
 
   const visibleColumns = columns.filter((col) => col.visible);
 
-  const handleSort = (field: keyof AnalyticsData) => {
+  const handleSort = (field: string) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -52,13 +72,32 @@ export function DataTable({ onFiltersChange, onExport, isExporting }: DataTableP
     }
   };
 
-  const filteredData = mockData
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((acc, part) => acc?.[part], obj) ?? 0;
+  };
+
+  const formatValue = (value: any, key: string) => {
+    if (value === undefined || value === null) {
+      return '-';
+    }
+    if (key.includes('dataTransferBytes')) {
+      // Convert bytes to MB and format
+      const mb = value / (1024 * 1024);
+      return `${mb.toFixed(2)} MB`;
+    }
+    if (typeof value === 'number') {
+      return value.toLocaleString();
+    }
+    return value;
+  };
+
+  const filteredData = data
     .filter((item) =>
-      item.hostname.toLowerCase().includes(search.toLowerCase())
+      item.metric.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      const aValue = getNestedValue(a, sortField);
+      const bValue = getNestedValue(b, sortField);
       const modifier = sortDirection === "asc" ? 1 : -1;
       
       if (typeof aValue === "number" && typeof bValue === "number") {
@@ -71,7 +110,7 @@ export function DataTable({ onFiltersChange, onExport, isExporting }: DataTableP
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
-  const toggleColumn = (key: keyof AnalyticsData) => {
+  const toggleColumn = (key: string) => {
     setColumns(
       columns.map((col) =>
         col.key === key ? { ...col, visible: !col.visible } : col
@@ -153,26 +192,10 @@ export function DataTable({ onFiltersChange, onExport, isExporting }: DataTableP
           </thead>
           <tbody>
             {paginatedData.map((item) => (
-              <tr key={item.hostname} className="border-b">
+              <tr key={item.metric} className="border-b">
                 {visibleColumns.map((column) => (
-                  <td key={`${item.hostname}-${column.key}`} className="py-3 px-4">
-                    {column.key === "status" ? (
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                          item.status === "healthy"
-                            ? "bg-green-50 text-green-700"
-                            : item.status === "warning"
-                            ? "bg-yellow-50 text-yellow-700"
-                            : "bg-red-50 text-red-700"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    ) : column.key === "requests" ? (
-                      item[column.key].toLocaleString()
-                    ) : (
-                      item[column.key]
-                    )}
+                  <td key={`${item.metric}-${column.key}`} className="py-3 px-4">
+                    {formatValue(getNestedValue(item, column.key), column.key)}
                   </td>
                 ))}
               </tr>

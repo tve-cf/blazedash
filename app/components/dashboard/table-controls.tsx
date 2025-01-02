@@ -3,13 +3,13 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { ExportMenu } from "./export-menu";
 import type { ExportFormat } from "~/lib/export";
-import type { AnalyticsData } from "~/types/analytics";
+import type { Column } from "~/types/analytics";
 
 interface TableControlsProps {
   onSearch: (value: string) => void;
   searchValue: string;
-  columns: Array<{ key: keyof AnalyticsData; label: string; visible: boolean }>;
-  onToggleColumn: (key: keyof AnalyticsData) => void;
+  columns: Column[];
+  onToggleColumn: (key: string) => void;
   onExport: (format: ExportFormat) => void;
   isExporting: boolean;
   onOpenFilters: () => void;

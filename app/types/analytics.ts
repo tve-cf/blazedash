@@ -1,13 +1,18 @@
-export interface AnalyticsData {
-  hostname: string;
+export interface AnalyticsMetric {
   requests: number;
-  bandwidth: string;
-  cacheRate: string;
-  status: "healthy" | "warning" | "error";
+  dataTransferBytes: number;
+  visits?: number;
+}
+
+export interface AnalyticsData {
+  metric: string;
+  total?: AnalyticsMetric;
+  api?: AnalyticsMetric;
+  pageviews?: AnalyticsMetric;
 }
 
 export interface Column {
-  key: keyof AnalyticsData;
+  key: string;
   label: string;
   visible: boolean;
 }
