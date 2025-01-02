@@ -11,6 +11,7 @@ import { AnalyticsSection } from "~/components/dashboard/analytics-section";
 import { SelectionRequired } from "~/components/ui/selection-required";
 import { useAnalytics } from "~/context/analytics-context";
 import { ComingSoonOverlay } from "~/components/ui/coming-soon-overlay";
+import { Loader2 } from "lucide-react";
 
 
 export const meta: MetaFunction = () => {
@@ -86,8 +87,11 @@ export default function Index() {
 
         {viewMode === "general" ? (
           <div className="pt-4">
-            {fetcher.state === 'loading' ? (
-              <div>Loading analytics...</div>
+            {fetcher.state === 'submitting' ? (
+              <div className="animate-pulse flex space-x-4 items-center">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <div className="text-muted-foreground">Loading analytics...</div>
+              </div>
             ) : fetcher.data?.error ? (
               <div className="text-destructive">
                 {fetcher.data.error}
@@ -117,7 +121,7 @@ export default function Index() {
         )}
         {!isSelectionComplete && (
           <SelectionRequired
-            message="Please select at least one zone to view analytics data."
+            message="Please select at least one zone and set the date range to view analytics data."
           />
         )}
       </div>
