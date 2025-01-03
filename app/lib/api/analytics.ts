@@ -11,7 +11,7 @@ interface AnalyticsVariables {
   order: string;
 }
 
-const ANALYTICS_QUERY = `query GetZoneTopNs($zoneTags:[string!],$filter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,$pageviewsFilter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,$apiFilter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!){viewer{scope:zones(filter:{zoneTag_in:$zoneTags}){total:httpRequestsAdaptiveGroups(filter:$filter,limit:5000){request:count sum{dataTransferBytes:edgeResponseBytes visits __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}pageviews:httpRequestsAdaptiveGroups(limit:5000,filter:$pageviewsFilter){request:count avg{sampleInterval __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}api:httpRequestsAdaptiveGroups(limit:5000,filter:$apiFilter){request:count avg{sampleInterval __typename}sum{edgeResponseBytes __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}__typename}}}`;
+const ANALYTICS_QUERY = `query GetZoneTopNs($zoneTags:[string!],$filter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,$pageviewsFilter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!,$apiFilter:ZoneHttpRequestsAdaptiveGroupsFilter_InputObject!){viewer{scope:zones(filter:{zoneTag_in:$zoneTags}){total:httpRequestsAdaptiveGroups(filter:$filter,limit:10000){request:count sum{dataTransferBytes:edgeResponseBytes visits __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}pageviews:httpRequestsAdaptiveGroups(limit:5000,filter:$pageviewsFilter){request:count avg{sampleInterval __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}api:httpRequestsAdaptiveGroups(limit:5000,filter:$apiFilter){request:count avg{sampleInterval __typename}sum{edgeResponseBytes __typename}dimensions{metric:clientRequestHTTPHost __typename}__typename}__typename}}}`;
 
 function groupByMetric(data: AnalyticsData) {
   const groupedObj: Record<string, any> = {};
@@ -106,7 +106,6 @@ export async function getAnalytics(
   };
 
   const data = await queryGraphQL<AnalyticsData, AnalyticsVariables>(apiToken, ANALYTICS_QUERY, variables);
-
 
   // Group the data by metric
   const groupedData = groupByMetric(data);
