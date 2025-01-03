@@ -41,17 +41,17 @@ export default function Index() {
     if (hasApiToken && selectedZones.length > 0 && dateRange?.from && dateRange?.to) {
       const formData = new FormData();
       const apiToken = localStorage.getItem('cfApiToken');
-      
+
       if (!apiToken) return;
 
       selectedZones.forEach(zone => formData.append('zones', zone));
       formData.append('token', apiToken);
-      
+
       // Set hours, minutes and seconds to start of day in local time
       const fromDate = new Date(dateRange.from);
       fromDate.setHours(0, 0, 0, 0);
       formData.append('since', fromDate.toISOString());
-      
+
       // Set hours, minutes and seconds to end of day in local time  
       const toDate = new Date(dateRange.to);
       toDate.setHours(23, 59, 59, 999);
@@ -96,14 +96,16 @@ export default function Index() {
         {viewMode === "general" ? (
           <div className="pt-4">
             {fetcher.state === 'submitting' ? (
-              <div className="animate-pulse flex space-x-4 items-center">
+              <div className="animate-pulse flex space-x-4 items-center justify-center w-full">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <div className="text-muted-foreground">Loading analytics...</div>
               </div>
             ) : fetcher.data?.error ? (
-              <div className="text-destructive">
-                <p>Please select a shorter date range to view analytics data.</p>
-                <p>There will be limits on the number of zones and date range you can select based on your Cloudflare plan.</p>
+              <div className="text-destructive flex space-x-4 items-center justify-center w-full">
+                <div className="text-center">
+                  <p>Please select a shorter date range to view analytics data.</p>
+                  <p>There will be limits on the number of zones and date range you can select based on your Cloudflare plan.</p>
+                </div>
               </div>
             ) : (
               <AnalyticsSection
