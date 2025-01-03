@@ -32,9 +32,13 @@ export function DateRangePicker({ className, onChange }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const currentYear = new Date().getFullYear();
+  const currentDate = new Date();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
   const handleSelect = (range: DateRange | undefined) => {
+    if (range?.from && range.from > currentDate) return;
+    if (range?.to && range.to > currentDate) return;
+    
     setDate(range);
     onChange?.(range);
     if (mode === "month") {
@@ -45,11 +49,22 @@ export function DateRangePicker({ className, onChange }: DateRangePickerProps) {
   const handleMonthSelect = (monthIndex: number) => {
     const from = new Date(selectedYear, monthIndex, 1);
     const to = new Date(selectedYear, monthIndex + 1, 0);
+    
+    if (from > currentDate) return;
+    if (to > currentDate) {
+      if (monthIndex === currentDate.getMonth() && selectedYear === currentDate.getFullYear()) {
+        handleSelect({ from, to: currentDate });
+      }
+      return;
+    }
+    
     handleSelect({ from, to });
   };
 
   const changeYear = (delta: number) => {
-    setSelectedYear(prev => prev + delta);
+    const newYear = selectedYear + delta;
+    if (newYear > currentDate.getFullYear()) return;
+    setSelectedYear(newYear);
   };
 
   return (
@@ -107,6 +122,7 @@ export function DateRangePicker({ className, onChange }: DateRangePickerProps) {
               selected={date}
               onSelect={handleSelect}
               numberOfMonths={2}
+              disabled={{ after: currentDate }}
             />
           ) : (
             <div className="p-3">
@@ -132,6 +148,10 @@ export function DateRangePicker({ className, onChange }: DateRangePickerProps) {
                   <Button
                     key={month}
                     variant="outline"
+                    disabled={
+                      selectedYear === currentDate.getFullYear() &&
+                      index > currentDate.getMonth()
+                    }
                     className={cn(
                       "h-9",
                       date?.from &&
