@@ -7,11 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- 2025-01-03: Added month picker mode to date range picker with year navigation and quick month selection
+
 ### Changed
-- 2025-01-03: Simplified export functionality in analytics table
-  - Removed PDF export option
-  - Removed zone and date range information from exports
-  - CSV exports now only include data headers and rows
-  - Excel exports now have a single sheet with table data
-  - Added proper column width formatting in Excel exports
-  - Added proper data formatting for numbers and bytes 
+- 2025-01-03: Simplified analytics table exports with better formatting and data handling
