@@ -1,5 +1,5 @@
-import { useState, useTransition } from "react";
-import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useTransition, useRef } from "react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { TableControls } from "./table-controls";
 import { FilterDrawer } from "./filter-drawer";
@@ -59,10 +59,13 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
   const [columns, setColumns] = useState<Column[]>(initialColumns);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(100);
   const [isPending, startTransition] = useTransition();
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>(initialFilters);
-  const itemsPerPage = 1000;
+  const pageSizeOptions = [10, 100, 500, 1000];
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const visibleColumns = columns.filter((col) => col.visible);
 
@@ -168,6 +171,18 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
     });
   };
 
+  const handleScroll = () => {
+    if (tableContainerRef.current) {
+      setShowScrollTop(tableContainerRef.current.scrollTop > 200);
+    }
+  };
+
+  const scrollToTop = () => {
+    if (tableContainerRef.current) {
+      tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="space-y-4 bg-card rounded-lg border p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
       <TableControls
@@ -189,59 +204,140 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
       />
 
       <div className={`rounded-lg border bg-background ${isPending ? "opacity-70" : ""}`}>
-        <div className="max-h-[600px] overflow-auto relative">
-          <table className="w-full">
-            <thead>
-              <tr className="sticky top-0 z-10 border-b transition-colors text-left bg-primary first:rounded-tl-lg last:rounded-tr-lg">
-                {visibleColumns.map((column, index) => (
-                  <th key={column.key} className={`px-4 py-3 bg-primary ${index === 0 ? 'rounded-tl-lg' : ''} ${index === visibleColumns.length - 1 ? 'rounded-tr-lg' : ''}`}>
-                    {column.key === 'no' ? (
-                      <span className="text-sm font-extrabold text-primary-foreground/80">{column.label}</span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleSort(column.key)}
-                        className="inline-flex items-center text-sm font-semibold text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-200"
-                      >
-                        {column.label}
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </button>
-                    )}
-                  </th>
+        <div className="relative">
+          <div 
+            ref={tableContainerRef}
+            onScroll={handleScroll}
+            className="max-h-[600px] overflow-auto"
+          >
+            <table className="w-full table-fixed">
+              <colgroup>
+                {visibleColumns.map((column) => (
+                  <col 
+                    key={column.key} 
+                    className={
+                      column.key === 'no' 
+                        ? 'w-[80px]' 
+                        : column.key === 'metric' 
+                          ? 'w-[300px]'
+                          : 'w-[150px]'
+                    } 
+                  />
                 ))}
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.map((item, index) => (
-                <tr key={item.metric} className="border-b">
+              </colgroup>
+              <thead>
+                <tr className="sticky top-0 z-10 border-b transition-colors text-left bg-primary first:rounded-tl-lg last:rounded-tr-lg">
+                  {visibleColumns.map((column, index) => (
+                    <th 
+                      key={column.key} 
+                      className={`px-4 py-3 bg-primary ${
+                        index === 0 ? 'rounded-tl-lg' : ''
+                      } ${
+                        index === visibleColumns.length - 1 ? 'rounded-tr-lg' : ''
+                      } ${
+                        column.key === 'no' 
+                          ? 'w-[80px]' 
+                          : column.key === 'metric' 
+                            ? 'w-[300px]'
+                            : 'w-[150px]'
+                      }`}
+                    >
+                      {column.key === 'no' ? (
+                        <span className="text-sm font-extrabold text-primary-foreground/80">{column.label}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleSort(column.key)}
+                          className="inline-flex items-center text-sm font-semibold text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-200"
+                        >
+                          {column.label}
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </button>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedData.map((item, index) => (
+                  <tr key={item.metric} className="border-b">
+                    {visibleColumns.map((column) => (
+                      <td 
+                        key={`${item.metric}-${column.key}`} 
+                        className={`py-3 px-4 truncate ${
+                          column.key === 'no' 
+                            ? 'w-[80px]' 
+                            : column.key === 'metric' 
+                              ? 'w-[300px]'
+                              : 'w-[150px]'
+                        }`}
+                      >
+                        {column.key === 'no' 
+                          ? startIndex + index + 1
+                          : formatValue(getNestedValue(item, column.key), column.key)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="sticky bottom-[46px] z-[9]">
+                  <td colSpan={visibleColumns.length} className="p-0">
+                    <div className="h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                  </td>
+                </tr>
+                <tr className="border-t-2 font-medium bg-background sticky bottom-0 z-10 shadow-[0_-1px_10px_0_rgba(0,0,0,0.2)]">
                   {visibleColumns.map((column) => (
-                    <td key={`${item.metric}-${column.key}`} className="py-3 px-4">
+                    <td 
+                      key={`subtotal-${column.key}`} 
+                      className={`py-3 px-4 truncate ${
+                        column.key === 'no' 
+                          ? 'w-[80px]' 
+                          : column.key === 'metric' 
+                            ? 'w-[300px]'
+                            : 'w-[150px]'
+                      }`}
+                    >
                       {column.key === 'no' 
-                        ? startIndex + index + 1
-                        : formatValue(getNestedValue(item, column.key), column.key)}
+                        ? ''
+                        : formatValue(subtotals[column.key], column.key)}
                     </td>
                   ))}
                 </tr>
-              ))}
-              <tr className="sticky bottom-[46px] z-[9]">
-                <td colSpan={visibleColumns.length} className="p-0">
-                  <div className="h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-                </td>
-              </tr>
-              <tr className="border-t-2 font-medium bg-background sticky bottom-0 z-10 shadow-[0_-1px_10px_0_rgba(0,0,0,0.2)]">
-                {visibleColumns.map((column) => (
-                  <td key={`subtotal-${column.key}`} className="py-3 px-4">
-                    {column.key === 'no' 
-                      ? ''
-                      : formatValue(subtotals[column.key], column.key)}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+              </tfoot>
+            </table>
+          </div>
+          {showScrollTop && (
+            <div className="absolute bottom-20 right-4 z-20">
+              <Button
+                size="icon"
+                onClick={scrollToTop}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1); // Reset to first page when changing page size
+            }}
+            className="h-8 w-20 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            {pageSizeOptions.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
