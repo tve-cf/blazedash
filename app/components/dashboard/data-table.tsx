@@ -188,6 +188,59 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
         onReset={handleReset}
       />
 
+      <div className={`rounded-lg border bg-background ${isPending ? "opacity-70" : ""}`}>
+        <div className="max-h-[600px] overflow-auto relative">
+          <table className="w-full">
+            <thead>
+              <tr className="sticky top-0 z-10 border-b transition-colors text-left bg-primary first:rounded-tl-lg last:rounded-tr-lg">
+                {visibleColumns.map((column, index) => (
+                  <th key={column.key} className={`px-4 py-3 bg-primary ${index === 0 ? 'rounded-tl-lg' : ''} ${index === visibleColumns.length - 1 ? 'rounded-tr-lg' : ''}`}>
+                    {column.key === 'no' ? (
+                      <span className="text-sm font-extrabold text-primary-foreground/80">{column.label}</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleSort(column.key)}
+                        className="inline-flex items-center text-sm font-semibold text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-200"
+                      >
+                        {column.label}
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </button>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedData.map((item, index) => (
+                <tr key={item.metric} className="border-b">
+                  {visibleColumns.map((column) => (
+                    <td key={`${item.metric}-${column.key}`} className="py-3 px-4">
+                      {column.key === 'no' 
+                        ? startIndex + index + 1
+                        : formatValue(getNestedValue(item, column.key), column.key)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              <tr className="sticky bottom-[46px] z-[9]">
+                <td colSpan={visibleColumns.length} className="p-0">
+                  <div className="h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                </td>
+              </tr>
+              <tr className="border-t-2 font-medium bg-background sticky bottom-0 z-10 shadow-[0_-1px_10px_0_rgba(0,0,0,0.2)]">
+                {visibleColumns.map((column) => (
+                  <td key={`subtotal-${column.key}`} className="py-3 px-4">
+                    {column.key === 'no' 
+                      ? ''
+                      : formatValue(subtotals[column.key], column.key)}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       <div className="flex items-center justify-end">
         <div className="flex items-center gap-2">
           <Button
@@ -210,53 +263,6 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-      </div>
-
-      <div className={`rounded-lg border bg-background ${isPending ? "opacity-70" : ""}`}>
-        <table className="w-full">
-          <thead className="[&_tr]:border-b bg-primary/5">
-            <tr className="border-b transition-colors hover:bg-primary/10 data-[state=selected]:bg-primary/20 text-left">
-              {visibleColumns.map((column) => (
-                <th key={column.key} className="px-4 py-3">
-                  {column.key === 'no' ? (
-                    <span className="text-sm font-semibold">{column.label}</span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleSort(column.key)}
-                      className="inline-flex items-center text-sm font-semibold hover:text-primary transition-colors duration-200"
-                    >
-                      {column.label}
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </button>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedData.map((item, index) => (
-              <tr key={item.metric} className="border-b">
-                {visibleColumns.map((column) => (
-                  <td key={`${item.metric}-${column.key}`} className="py-3 px-4">
-                    {column.key === 'no' 
-                      ? startIndex + index + 1
-                      : formatValue(getNestedValue(item, column.key), column.key)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-            <tr className="border-t-2 font-medium bg-muted/50">
-              {visibleColumns.map((column) => (
-                <td key={`subtotal-${column.key}`} className="py-3 px-4">
-                  {column.key === 'no' 
-                    ? ''
-                    : formatValue(subtotals[column.key], column.key)}
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
   );

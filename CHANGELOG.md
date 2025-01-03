@@ -12,5 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 2025-01-03: Added support for setting API token via environment variables
 
 ### Changed
+- 2025-01-03: Enhanced analytics table with sticky header/footer, improved scrolling behavior, and better visual indicators
 - 2025-01-03: Simplified analytics table exports with better formatting and data handling
 - 2025-01-03: Restricted date range picker to prevent future date selection in both calendar and month views
