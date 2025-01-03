@@ -46,8 +46,16 @@ export default function Index() {
 
       selectedZones.forEach(zone => formData.append('zones', zone));
       formData.append('token', apiToken);
-      formData.append('since', dateRange.from.toISOString());
-      formData.append('until', dateRange.to.toISOString());
+      
+      // Set hours, minutes and seconds to start of day in local time
+      const fromDate = new Date(dateRange.from);
+      fromDate.setHours(0, 0, 0, 0);
+      formData.append('since', fromDate.toISOString());
+      
+      // Set hours, minutes and seconds to end of day in local time  
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59, 999);
+      formData.append('until', toDate.toISOString());
 
       fetcher.submit(formData, {
         method: 'POST',
@@ -94,7 +102,8 @@ export default function Index() {
               </div>
             ) : fetcher.data?.error ? (
               <div className="text-destructive">
-                {fetcher.data.error}
+                <p>Please select a shorter date range to view analytics data.</p>
+                <p>There will be limits on the number of zones and date range you can select based on your Cloudflare plan.</p>
               </div>
             ) : (
               <AnalyticsSection

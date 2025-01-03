@@ -30,16 +30,7 @@ export async function action({ request }: ActionFunctionArgs) {
       throw new CloudflareAPIError("End date is required", 400);
     }
 
-    // Set hours, minutes and seconds to 0 based on UTC
-    const sinceDate = new Date(since);
-    sinceDate.setUTCHours(0, 0, 0, 0);
-    const sinceDateString = sinceDate.toISOString();
-
-    const untilDate = new Date(until);
-    untilDate.setUTCHours(0, 0, 0, 0);
-    const untilDateString = untilDate.toISOString();
-
-    const analytics = await getAnalytics(apiToken, zones as string[], sinceDateString, untilDateString);
+    const analytics = await getAnalytics(apiToken, zones as string[], since, until);
     return Response.json(analytics);
   } catch (error) {
     console.error("Analytics API Error:", error);
