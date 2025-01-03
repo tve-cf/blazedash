@@ -2,7 +2,7 @@ import { json, type ActionFunctionArgs } from "@remix-run/cloudflare";
 import { getAnalytics } from "~/lib/api/analytics";
 import { CloudflareAPIError } from "~/lib/errors";
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
@@ -12,7 +12,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const zones = formData.getAll("zones");
     const since = formData.get("since");
     const until = formData.get("until");
-    const apiToken = formData.get("token");
+    const apiToken = context.cloudflare.env.API_TOKEN || formData.get("token");
 
     if (!apiToken || typeof apiToken !== "string") {
       throw new CloudflareAPIError("API token is required", 401);

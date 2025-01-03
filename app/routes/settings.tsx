@@ -1,4 +1,4 @@
-import { Form, useActionData, useNavigation } from "@remix-run/react";
+import { Form, useActionData, useNavigation, useLoaderData } from "@remix-run/react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label"; 
@@ -6,7 +6,7 @@ import { ComingSoonOverlay } from "~/components/ui/coming-soon-overlay";
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { cn } from "~/lib/utils";
-import { json, type ActionFunctionArgs } from "@remix-run/node";
+import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getZones } from "~/lib/api/zones";
 import type { Zone } from "~/types/cloudflare";
 
@@ -14,11 +14,22 @@ type ActionData =
   | { success: true; zones: Zone[]; message: string }
   | { success: false; error: string };
 
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const apiToken = formData.get("apiToken");
+type LoaderData = {
+  hasEnvToken: boolean;
+};
 
-  if (!apiToken || typeof apiToken !== "string") {
+export async function loader({ context }: LoaderFunctionArgs) {
+  const hasEnvToken = Boolean(context.cloudflare.env.API_TOKEN);
+
+  return { hasEnvToken };
+}
+
+export async function action({ request, context }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  let apiToken = context.cloudflare.env.API_TOKEN || formData.get("apiToken") as string;
+
+  // If no env token, try to get from form
+  if (!apiToken) {
     return Response.json(
       { success: false, error: "API token is required" },
       { status: 400 }
@@ -27,6 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const zones = await getZones(apiToken);
+
     return Response.json({ 
       success: true, 
       zones: zones.result,
@@ -34,6 +46,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error(error);
+
     return Response.json({ 
       success: false, 
       error: error instanceof Error ? error.message : "Failed to load zones" 
@@ -42,27 +55,30 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Settings() {
+  const { hasEnvToken } = useLoaderData<LoaderData>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [apiToken, setApiToken] = useState('');
   const isLoading = navigation.state === "submitting";
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('cfApiToken');
-    if (savedToken) {
-      setApiToken(savedToken);
+    if (!hasEnvToken) {
+      const savedToken = localStorage.getItem('cfApiToken');
+      if (savedToken) {
+        setApiToken(savedToken);
+      }
     }
-  }, []);
+  }, [hasEnvToken]);
 
   useEffect(() => {
-    if (actionData && actionData.success) {
-      localStorage.setItem('cfApiToken', apiToken);
+    if (actionData?.success) {
+      localStorage.setItem('cfApiToken', hasEnvToken ? "TOKEN_SET_VIA_ENV" : apiToken);
       if ('zones' in actionData) {
         localStorage.setItem('cfZones', JSON.stringify(actionData.zones));
         window.dispatchEvent(new Event('zonesUpdated'));
       }
     }
-  }, [actionData, apiToken]);
+  }, [actionData, apiToken, hasEnvToken]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -79,7 +95,7 @@ export default function Settings() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="apiToken">API Token</Label>
-                {apiToken && (
+                {(apiToken || hasEnvToken) && (
                   <div>
                     <Button
                       type="submit"
@@ -93,21 +109,31 @@ export default function Settings() {
                   </div>
                 )}
               </div>
-              <Input
-                id="apiToken"
-                name="apiToken"
-                type="password"
-                placeholder="Enter your API token"
-                required
-                value={apiToken}
-                onChange={(e) => setApiToken(e.target.value)}
-              />
-              {actionData && !actionData.success && (
-                <p className="text-sm text-destructive">{actionData.error}</p>
+              {hasEnvToken ? (
+                <div className="rounded-lg border p-4 bg-muted">
+                  <p className="text-sm text-muted-foreground">
+                    API token is configured via environment variables.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <Input
+                    id="apiToken"
+                    name="apiToken"
+                    type="password"
+                    placeholder="Enter your API token"
+                    required
+                    value={apiToken}
+                    onChange={(e) => setApiToken(e.target.value)}
+                  />
+                  {actionData && !actionData.success && (
+                    <p className="text-sm text-destructive">{actionData.error}</p>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Your API token will be securely stored in your browser's local storage.
+                  </p>
+                </>
               )}
-              <p className="text-sm text-muted-foreground">
-                Your API token will be securely stored in your browser's local storage.
-              </p>
               <div className="mt-2 text-sm text-muted-foreground">
                 <p>Your API token must have the following permissions:</p>
                 <ul className="list-disc pl-5 mt-1">
