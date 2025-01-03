@@ -31,23 +31,3 @@ export const DNSRecordSchema = CloudflareResponseSchema.extend({
     })
   ),
 });
-
-export const AnalyticsSchema = CloudflareResponseSchema.extend({
-  result: z.object({
-    totals: z.object({
-      requests: z.number(),
-      pageViews: z.number(),
-      bytes: z.number(),
-      visits: z.number(),
-    }),
-    timeseries: z.array(
-      z.object({
-        requests: z.number(),
-        pageViews: z.number(),
-        bytes: z.number(),
-        visits: z.number(),
-        timestamp: z.string(),
-      })
-    ),
-  }),
-});
