@@ -64,7 +64,7 @@ export function DateRangePicker({ className, onChange }: DateRangePickerProps) {
             <ChevronDown className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent className="w-[160px]">
           <DropdownMenuItem onSelect={() => setMode("custom")}>
             Custom Range
           </DropdownMenuItem>
