@@ -68,15 +68,6 @@ export default function Index() {
     console.log("Filters changed:", filters);
   };
 
-  const handleExport = (format: ExportFormat) => {
-    setIsPending(true);
-    try {
-      exportData([], "analytics-export", format); // TODO: Use real data
-    } finally {
-      setIsPending(false);
-    }
-  };
-
   const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
     setTimeUnit(unit);
   }, []);
@@ -111,7 +102,6 @@ export default function Index() {
               <AnalyticsSection
                 analyticsData={fetcher.data?.result}
                 onFiltersChange={handleFiltersChange}
-                onExport={handleExport}
                 isExporting={isPending}
               />
             )}

@@ -4,14 +4,12 @@ import type { Filters, ExportFormat, AnalyticsData } from "~/types/analytics";
 
 interface AnalyticsSectionProps {
   onFiltersChange: (filters: Filters) => void;
-  onExport: (format: ExportFormat) => void;
   isExporting: boolean;
   analyticsData?: AnalyticsData[];
 }
 
 export function AnalyticsSection({ 
   onFiltersChange, 
-  onExport,
   isExporting,
   analyticsData = []
 }: AnalyticsSectionProps) {
@@ -27,7 +25,6 @@ export function AnalyticsSection({
       <DataTable 
         data={analyticsData}
         onFiltersChange={onFiltersChange}
-        onExport={onExport}
         isExporting={isExporting}
       />
     </div>

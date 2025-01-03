@@ -5,6 +5,7 @@ import { TableControls } from "./table-controls";
 import { FilterDrawer } from "./filter-drawer";
 import { exportData, type ExportFormat } from "~/lib/export";
 import type { AnalyticsData, Column, Filters } from "~/types/analytics";
+import { useAnalytics } from "~/context/analytics-context";
 
 const initialColumns: Column[] = [
   { key: "no", label: "No.", visible: true },
@@ -39,7 +40,7 @@ const initialColumns: Column[] = [
 interface DataTableProps {
   data: AnalyticsData[];
   onFiltersChange: (filters: Filters) => void;
-  onExport: (format: ExportFormat) => void;
+  onExport?: (format: ExportFormat) => void;
   isExporting: boolean;
 }
 
@@ -52,6 +53,7 @@ const initialFilters: Filters = {
 };
 
 export function DataTable({ data, onFiltersChange, onExport, isExporting }: DataTableProps) {
+  const { selectedZones, dateRange } = useAnalytics();
   const [sortField, setSortField] = useState<string>("total.requests");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [columns, setColumns] = useState<Column[]>(initialColumns);
@@ -150,6 +152,22 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
     onFiltersChange(initialFilters);
   };
 
+  const handleExport = (format: ExportFormat) => {
+    if (onExport) {
+      onExport(format);
+      return;
+    }
+
+    exportData({
+      data: filteredData,
+      filename: "analytics-export",
+      format,
+      columns: visibleColumns,
+      getNestedValue,
+      formatValue
+    });
+  };
+
   return (
     <div className="space-y-4 bg-card rounded-lg border p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
       <TableControls
@@ -157,7 +175,7 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
         searchValue={search}
         columns={columns.filter(col => col.key !== 'no')}
         onToggleColumn={toggleColumn}
-        onExport={onExport}
+        onExport={handleExport}
         isExporting={isExporting}
         onOpenFilters={() => setIsFilterDrawerOpen(true)}
       />

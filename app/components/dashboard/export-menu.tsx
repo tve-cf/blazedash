@@ -30,9 +30,6 @@ export function ExportMenu({ onExport, disabled }: ExportMenuProps) {
         <DropdownMenuItem onClick={() => onExport("excel")}>
           Export as Excel
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onExport("pdf")}>
-          Export as PDF
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

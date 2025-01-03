@@ -1,36 +1,42 @@
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import type { AnalyticsData } from "~/types/analytics";
+import type { AnalyticsData, Column } from "~/types/analytics";
 
-export type ExportFormat = "csv" | "excel" | "pdf";
+export type ExportFormat = "csv" | "excel";
 
-export function exportData(data: AnalyticsData[], filename: string, format: ExportFormat) {
+interface ExportOptions {
+  data: AnalyticsData[];
+  filename: string;
+  format: ExportFormat;
+  columns: Column[];
+  getNestedValue: (obj: any, path: string) => any;
+  formatValue: (value: any, key: string) => string;
+}
+
+export function exportData({ data, filename, format, columns, getNestedValue, formatValue }: ExportOptions) {
   switch (format) {
     case "csv":
-      exportToCSV(data, filename);
+      exportToCSV({ data, filename, columns, getNestedValue, formatValue });
       break;
     case "excel":
-      exportToExcel(data, filename);
-      break;
-    case "pdf":
-      exportToPDF(data, filename);
+      exportToExcel({ data, filename, columns, getNestedValue, formatValue });
       break;
   }
 }
 
-function exportToCSV(data: AnalyticsData[], filename: string) {
-  const headers = ["Hostname", "Requests", "Bandwidth", "Cache Rate", "Status"];
+function exportToCSV({ data, filename, columns, getNestedValue, formatValue }: Omit<ExportOptions, "format">) {
+  const visibleColumns = columns.filter(col => col.visible && col.key !== 'no');
+  const headers = visibleColumns.map(col => col.label);
+  
   const csvContent = [
     headers.join(","),
     ...data.map((row) =>
-      [
-        row.hostname,
-        row.requests,
-        row.bandwidth,
-        row.cacheRate,
-        row.status,
-      ].join(",")
+      visibleColumns
+        .map((col) => {
+          const value = formatValue(getNestedValue(row, col.key), col.key);
+          // Escape commas and quotes in the value
+          return `"${String(value).replace(/"/g, '""')}"`;
+        })
+        .join(",")
     ),
   ].join("\n");
 
@@ -40,44 +46,31 @@ function exportToCSV(data: AnalyticsData[], filename: string) {
   );
 }
 
-function exportToExcel(data: AnalyticsData[], filename: string) {
-  const worksheet = XLSX.utils.json_to_sheet(data);
+function exportToExcel({ data, filename, columns, getNestedValue, formatValue }: Omit<ExportOptions, "format">) {
+  const visibleColumns = columns.filter(col => col.visible && col.key !== 'no');
+  
+  // Transform data for Excel
+  const excelData = data.map(row => {
+    const transformedRow: Record<string, any> = {};
+    visibleColumns.forEach(col => {
+      transformedRow[col.label] = formatValue(getNestedValue(row, col.key), col.key);
+    });
+    return transformedRow;
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  
+  // Set column widths for data
+  worksheet['!cols'] = visibleColumns.map(() => ({ wch: 20 }));
+
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Analytics");
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Analytics Data");
   
   const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
   downloadFile(
     new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), 
     `${filename}.xlsx`
   );
-}
-
-function exportToPDF(data: AnalyticsData[], filename: string) {
-  const doc = new jsPDF();
-  
-  // Add title
-  doc.setFontSize(16);
-  doc.text("Analytics Report", 14, 15);
-  
-  const headers = ["Hostname", "Requests", "Bandwidth", "Cache Rate", "Status"];
-  const rows = data.map(item => [
-    item.hostname,
-    item.requests.toLocaleString(),
-    item.bandwidth,
-    item.cacheRate,
-    item.status
-  ]);
-
-  doc.autoTable({
-    head: [headers],
-    body: rows,
-    startY: 25,
-    margin: { top: 25 },
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [66, 66, 66] }
-  });
-  
-  doc.save(`${filename}.pdf`);
 }
 
 function downloadFile(blob: Blob, filename: string) {
