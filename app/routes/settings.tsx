@@ -115,7 +115,6 @@ export default function Settings() {
                   <li>All zones:
                     <ul className="list-disc pl-5">
                       <li>Zone:Read</li>
-                      <li>DNS:Read</li>
                       <li>Analytics:Read</li>
                     </ul>
                   </li>
@@ -132,7 +131,7 @@ export default function Settings() {
         <div className="mt-12 space-y-6">
           <h3 className="text-lg font-medium">Advanced Settings</h3>
           <div className="relative rounded-lg border p-6">
-            <ComingSoonOverlay />
+            <ComingSoonOverlay showDescription={false} />
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Data Store Schedule</Label>
