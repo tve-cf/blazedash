@@ -13,6 +13,8 @@ interface TableControlsProps {
   onExport: (format: ExportFormat) => void;
   isExporting: boolean;
   onOpenFilters: () => void;
+  showFilters?: boolean;
+  showColumnControls?: boolean;
 }
 
 export function TableControls({
@@ -23,6 +25,8 @@ export function TableControls({
   onExport,
   isExporting,
   onOpenFilters,
+  showFilters = false,
+  showColumnControls = false,
 }: TableControlsProps) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -33,17 +37,21 @@ export function TableControls({
           onChange={(e) => onSearch(e.target.value)}
           className="max-w-sm"
         />
-        <Button variant="outline" onClick={onOpenFilters}>
-          <Filter className="mr-2 h-4 w-4" />
-          Filters
-        </Button>
+        {showFilters && (
+          <Button variant="outline" onClick={onOpenFilters}>
+            <Filter className="mr-2 h-4 w-4" />
+            Filters
+          </Button>
+        )}
         <ExportMenu onExport={onExport} disabled={isExporting} />
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm">
-          <Settings2 className="mr-2 h-4 w-4" />
-          Columns
-        </Button>
+        {showColumnControls && (
+          <Button variant="outline" size="sm">
+            <Settings2 className="mr-2 h-4 w-4" />
+            Columns
+          </Button>
+        )}
       </div>
     </div>
   );
