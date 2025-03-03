@@ -1,9 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { MetaFunction, useFetcher } from "@remix-run/react";
 import type { DateRange } from "react-day-picker";
-import { OverviewCards } from "~/components/dashboard/overview-cards";
-import type { Filters, ExportFormat, TimeUnit, ViewMode, AnalyticsData } from "~/types/analytics";
-import { exportData } from "~/lib/export";
+import type { Filters, TimeUnit, ViewMode, AnalyticsData } from "~/types/analytics";
 import { ComparisonControls } from "~/components/traffic/comparison-controls";
 import { ComparisonTable } from "~/components/traffic/comparison-table";
 import { ViewSelector } from "~/components/traffic/view-selector";

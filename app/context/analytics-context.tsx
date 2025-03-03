@@ -1,6 +1,6 @@
+import { Zone } from "cloudflare/resources/zones/zones.mjs";
 import { createContext, useContext, useState, useEffect } from "react";
 import type { DateRange } from "react-day-picker";
-import type { Zone } from "~/types/cloudflare";
 
 interface AnalyticsContextType {
   selectedZones: string[];
@@ -11,29 +11,35 @@ interface AnalyticsContextType {
   hasApiToken: boolean;
 }
 
-const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined);
+const AnalyticsContext = createContext<AnalyticsContextType | undefined>(
+  undefined
+);
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [zones, setZones] = useState<Array<{ label: string; value: string }>>([]);
+  const [zones, setZones] = useState<Array<{ label: string; value: string }>>(
+    []
+  );
   const [hasApiToken, setHasApiToken] = useState(false);
 
   useEffect(() => {
     const handleStorageChange = () => {
-      const token = localStorage.getItem('cfApiToken');
+      const token = localStorage.getItem("cfApiToken");
       setHasApiToken(!!token);
 
-      const storedZones = localStorage.getItem('cfZones');
+      const storedZones = localStorage.getItem("cfZones");
       if (storedZones) {
         try {
           const parsedZones = JSON.parse(storedZones) as Zone[];
-          setZones(parsedZones.map(zone => ({
-            label: zone.name,
-            value: zone.id
-          })));
+          setZones(
+            parsedZones.map((zone) => ({
+              label: zone.name,
+              value: zone.id,
+            }))
+          );
         } catch (error) {
-          console.error('Error parsing zones:', error);
+          console.error("Error parsing zones:", error);
         }
       }
     };
@@ -42,13 +48,13 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     handleStorageChange();
 
     // Listen for changes
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
     // Custom event for when we update storage from within the app
-    window.addEventListener('zonesUpdated', handleStorageChange);
+    window.addEventListener("zonesUpdated", handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('zonesUpdated', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("zonesUpdated", handleStorageChange);
     };
   }, []);
 
