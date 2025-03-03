@@ -27,11 +27,12 @@ import {
 import { getZones } from "~/lib/api/zones";
 import { Zone } from "cloudflare/resources/zones/zones.mjs";
 import { Subscription } from "cloudflare/resources/shared.mjs";
+import { ZoneWithSubscription } from "~/types/cloudflare";
 
 type ActionData =
   | {
       success: true;
-      zones: (Zone & { subscription: Subscription[] })[];
+      zones: ZoneWithSubscription[];
       message: string;
     }
   | { success: false; error: string };
@@ -85,7 +86,7 @@ export default function Settings() {
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [apiToken, setApiToken] = useState("");
-  const [zones, setZones] = useState<(Zone & { subscription: Subscription[] })[]>([]);
+  const [zones, setZones] = useState<ZoneWithSubscription[]>([]);
   const isLoading = navigation.state === "submitting";
 
   useEffect(() => {
@@ -189,6 +190,7 @@ export default function Settings() {
                 <p>Your API token must have the following permissions:</p>
                 <ul className="list-disc pl-5 mt-1">
                   <li>Account Analytics:Read</li>
+                  <li>Account Billings:Read</li>
                   <li>
                     All zones:
                     <ul className="list-disc pl-5">
@@ -226,9 +228,9 @@ export default function Settings() {
                     <TableRow key={zone.id}>
                       <TableCell>{zone.name}</TableCell>
                       <TableCell>
-                        {zone.subscription ? (
+                        {zone.subscriptions ? (
                           <ul>
-                            {zone.subscription.map((sub, index: number) => (
+                            {zone.subscriptions.map((sub, index: number) => (
                               <li key={index}>
                                 {sub.rate_plan?.public_name || "Free"}
                               </li>

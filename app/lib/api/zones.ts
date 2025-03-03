@@ -2,6 +2,7 @@ import { Subscription } from "cloudflare/resources/shared";
 import { Zone } from "cloudflare/resources/zones/zones";
 import { cfClient, fetchCloudflare } from "./cloudflare";
 import { ZoneSchema } from "~/lib/schemas/cloudflare";
+import { ZoneWithSubscription } from "~/types/cloudflare";
 
 export async function getZones(apiToken: string) {
   const accountList = await cfClient(apiToken).accounts.list();
@@ -15,11 +16,7 @@ export async function getZones(apiToken: string) {
     per_page: 50,
   });
 
-  const zonesWithSubscriptions: (Zone & {
-    subscription?: (Subscription & {
-      zone: { id: string; name: string };
-    })[];
-  })[] = [...zones.result];
+  const zonesWithSubscriptions = [...(zones.result as ZoneWithSubscription[])];
 
   subscription.result.forEach((subscription) => {
     const sub = subscription as Subscription & {
@@ -34,14 +31,14 @@ export async function getZones(apiToken: string) {
       zones.result.forEach((zone) => {
         if (
           zone.id === sub.zone.id &&
-          !zonesWithSubscriptions[zoneIndex].subscription
+          !zonesWithSubscriptions[zoneIndex].subscriptions
         ) {
-          zonesWithSubscriptions[zoneIndex].subscription = [sub];
+          zonesWithSubscriptions[zoneIndex].subscriptions = [sub];
         } else if (
           zone.id === sub.zone.id &&
-          zonesWithSubscriptions[zoneIndex].subscription
+          zonesWithSubscriptions[zoneIndex].subscriptions
         ) {
-          zonesWithSubscriptions[zoneIndex].subscription.push(sub);
+          zonesWithSubscriptions[zoneIndex].subscriptions.push(sub);
         }
       });
     }

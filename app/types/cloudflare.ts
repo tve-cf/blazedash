@@ -1,3 +1,6 @@
+import { Subscription } from "cloudflare/resources/shared.mjs";
+import { Zone } from "cloudflare/resources/zones/zones";
+
 export interface CloudflareError {
   code: number;
   message: string;
@@ -8,16 +11,6 @@ export interface CloudflareResponse<T> {
   errors: CloudflareError[];
   messages: string[];
   result: T;
-}
-
-export interface Zone {
-  id: string;
-  name: string;
-  subscription?: Array<{
-    rate_plan?: {
-      name: string;
-    };
-  }>;
 }
 
 export interface DNSRecord {
@@ -85,4 +78,8 @@ export interface AnalyticsData {
     };
   };
   errors: string | null;
+}
+
+export interface ZoneWithSubscription extends Zone {
+  subscriptions: Subscription[];
 }
