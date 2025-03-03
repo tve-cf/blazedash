@@ -11,6 +11,7 @@ import { FilterDrawer } from "./filter-drawer";
 import { exportData, type ExportFormat } from "~/lib/export";
 import type { AnalyticsData, Column, Filters } from "~/types/analytics";
 import { useAnalytics } from "~/context/analytics-context";
+import { useEffect } from "react";
 
 const initialColumns: Column[] = [
   { key: "no", label: "No.", visible: true },
@@ -43,7 +44,7 @@ const initialColumns: Column[] = [
   {
     key: "botTotal.requests",
     label: "Bot Total",
-    visible: true,
+    visible: false,
   },
 ];
 
@@ -52,6 +53,7 @@ interface DataTableProps {
   onFiltersChange: (filters: Filters) => void;
   onExport?: (format: ExportFormat) => void;
   isExporting: boolean;
+  includeBotManagement?: boolean;
 }
 
 const initialFilters: Filters = {
@@ -67,6 +69,7 @@ export function DataTable({
   onFiltersChange,
   onExport,
   isExporting,
+  includeBotManagement = false,
 }: DataTableProps) {
   const { selectedZones, dateRange } = useAnalytics();
   const [sortField, setSortField] = useState<string>("total.requests");
@@ -164,13 +167,24 @@ export function DataTable({
   };
 
   const handleFiltersChange = (newFilters: Filters) => {
-    setFilters(newFilters);
-    onFiltersChange(newFilters);
+    // Preserve the includeBotManagement property from the parent component
+    const updatedFilters = {
+      ...newFilters,
+      // Explicitly remove includeBotManagement from the filters handled by the data table
+      includeBotManagement: undefined
+    };
+    setFilters(updatedFilters);
+    onFiltersChange(updatedFilters);
   };
 
   const handleReset = () => {
-    setFilters(initialFilters);
-    onFiltersChange(initialFilters);
+    const updatedFilters = {
+      ...initialFilters,
+      // Don't reset the includeBotManagement property as it's handled separately
+      includeBotManagement: undefined
+    };
+    setFilters(updatedFilters);
+    onFiltersChange(updatedFilters);
   };
 
   const handleExport = (format: ExportFormat) => {
@@ -201,6 +215,17 @@ export function DataTable({
       tableContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  // Update columns when includeBotManagement changes
+  useEffect(() => {
+    setColumns(prevColumns => 
+      prevColumns.map(col => 
+        col.key === "botTotal.requests" 
+          ? { ...col, visible: includeBotManagement } 
+          : col
+      )
+    );
+  }, [includeBotManagement]);
 
   return (
     <div className="space-y-4 bg-card rounded-lg border p-4 shadow-sm hover:shadow-md transition-shadow duration-200">

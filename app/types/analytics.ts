@@ -23,6 +23,7 @@ export interface Filters {
   ipVersions: string[];
   countries: string[];
   clientTypes: string[];
+  includeBotManagement?: boolean;
 }
 
 export interface TrafficData {

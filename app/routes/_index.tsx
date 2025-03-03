@@ -10,6 +10,8 @@ import { SelectionRequired } from "~/components/ui/selection-required";
 import { useAnalytics } from "~/context/analytics-context";
 import { ComingSoonOverlay } from "~/components/ui/coming-soon-overlay";
 import { Loader2 } from "lucide-react";
+import { Switch } from "~/components/ui/switch";
+import { Label } from "~/components/ui/label";
 
 
 export const meta: MetaFunction = () => {
@@ -31,6 +33,7 @@ export default function Index() {
   const [isPending, setIsPending] = useState(false);
   const [timeUnit, setTimeUnit] = useState<TimeUnit>("day");
   const [viewMode, setViewMode] = useState<ViewMode>("general");
+  const [includeBotManagement, setIncludeBotManagement] = useState(false);
   const { selectedZones, dateRange, hasApiToken } = useAnalytics();
   const isSelectionComplete = selectedZones.length > 0 && dateRange?.from && dateRange?.to;
   const fetcher = useFetcher<AnalyticsResponse>();
@@ -54,16 +57,25 @@ export default function Index() {
       const toDate = new Date(dateRange.to);
       toDate.setHours(23, 59, 59, 999);
       formData.append('until', toDate.toISOString());
+      
+      // Add bot management parameter
+      if (includeBotManagement) {
+        formData.append('includeBotManagement', 'true');
+      }
 
       fetcher.submit(formData, {
         method: 'POST',
         action: '/api/analytics'
       });
     }
-  }, [selectedZones, dateRange, hasApiToken]);
+  }, [selectedZones, dateRange, hasApiToken, includeBotManagement]);
 
   const handleFiltersChange = (filters: Filters) => {
     console.log("Filters changed:", filters);
+  };
+
+  const handleBotManagementChange = (include: boolean) => {
+    setIncludeBotManagement(include);
   };
 
   const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
@@ -79,7 +91,17 @@ export default function Index() {
       <div className="relative">
         <div className="flex items-center justify-between border-b pb-4">
           <h3 className="text-lg font-medium">Traffic Analytics</h3>
-          <ViewSelector mode={viewMode} onChange={setViewMode} />
+          <div className="flex items-center gap-6">
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="bot-management" 
+                checked={includeBotManagement}
+                onCheckedChange={handleBotManagementChange}
+              />
+              <Label htmlFor="bot-management">Include Bot Traffic</Label>
+            </div>
+            <ViewSelector mode={viewMode} onChange={setViewMode} />
+          </div>
         </div>
 
         {viewMode === "general" ? (
@@ -101,6 +123,8 @@ export default function Index() {
                 analyticsData={fetcher.data?.result}
                 onFiltersChange={handleFiltersChange}
                 isExporting={isPending}
+                includeBotManagement={includeBotManagement}
+                onBotManagementChange={handleBotManagementChange}
               />
             )}
           </div>

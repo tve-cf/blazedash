@@ -20,18 +20,27 @@ export function FilterDrawer({
   onFiltersChange,
   onReset,
 }: FilterDrawerProps) {
+  const handleFilterChange = (newPartialFilters: Partial<Filters>) => {
+    const { includeBotManagement } = filters;
+    onFiltersChange({ 
+      ...filters, 
+      ...newPartialFilters,
+      includeBotManagement
+    });
+  };
+
   const handleStatusChange = (status: string) => {
     const newStatuses = filters.statusCodes.includes(status)
       ? filters.statusCodes.filter((s) => s !== status)
       : [...filters.statusCodes, status];
-    onFiltersChange({ ...filters, statusCodes: newStatuses });
+    handleFilterChange({ statusCodes: newStatuses });
   };
 
   const handleCacheStatusChange = (status: string) => {
     const newStatuses = filters.cacheStatus.includes(status)
       ? filters.cacheStatus.filter((s) => s !== status)
       : [...filters.cacheStatus, status];
-    onFiltersChange({ ...filters, cacheStatus: newStatuses });
+    handleFilterChange({ cacheStatus: newStatuses });
   };
 
   return (
@@ -92,7 +101,7 @@ export function FilterDrawer({
                     const newVersions = filters.ipVersions.includes(version)
                       ? filters.ipVersions.filter((v) => v !== version)
                       : [...filters.ipVersions, version];
-                    onFiltersChange({ ...filters, ipVersions: newVersions });
+                    handleFilterChange({ ipVersions: newVersions });
                   }}
                 />
                 <Label htmlFor={`ip-${version}`}>{version}</Label>

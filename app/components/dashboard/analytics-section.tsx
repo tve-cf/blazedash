@@ -6,12 +6,16 @@ interface AnalyticsSectionProps {
   onFiltersChange: (filters: Filters) => void;
   isExporting: boolean;
   analyticsData?: AnalyticsData[];
+  includeBotManagement?: boolean;
+  onBotManagementChange?: (include: boolean) => void;
 }
 
 export function AnalyticsSection({ 
   onFiltersChange, 
   isExporting,
-  analyticsData = []
+  analyticsData = [],
+  includeBotManagement = false,
+  onBotManagementChange
 }: AnalyticsSectionProps) {
   return (
     <div className="space-y-6">
@@ -26,6 +30,7 @@ export function AnalyticsSection({
         data={analyticsData}
         onFiltersChange={onFiltersChange}
         isExporting={isExporting}
+        includeBotManagement={includeBotManagement}
       />
     </div>
   );
