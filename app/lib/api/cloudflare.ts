@@ -2,6 +2,13 @@ import { z } from "zod";
 import { CloudflareAPIError } from "~/lib/errors";
 import { CloudflareResponseSchema } from "~/lib/schemas/cloudflare";
 import { BASE_URL, fetchWithTimeout } from "./base";
+import Cloudflare from "cloudflare";
+
+export function cfClient(token: string) {
+  return new Cloudflare({
+    apiToken: token,
+  });
+}
 
 export async function fetchCloudflare<T>(
   endpoint: string,
@@ -13,21 +20,18 @@ export async function fetchCloudflare<T>(
   }
 
   try {
-    const response = await fetchWithTimeout(
-      `${BASE_URL}${endpoint}`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetchWithTimeout(`${BASE_URL}${endpoint}`, {
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     const data = await response.json();
-    
+
     // Validate basic response structure first
     const parsedResponse = CloudflareResponseSchema.safeParse(data);
-    
+
     if (!parsedResponse.success) {
       throw new CloudflareAPIError(
         "Invalid response format from Cloudflare API",
@@ -62,20 +66,16 @@ export async function fetchCloudflare<T>(
     }
 
     if (error instanceof z.ZodError) {
-      throw new CloudflareAPIError(
-        "Invalid response format",
-        500,
-        [{ code: 0, message: error.message }]
-      );
+      throw new CloudflareAPIError("Invalid response format", 500, [
+        { code: 0, message: error.message },
+      ]);
     }
 
     if (error instanceof Error) {
       if (error.name === "AbortError") {
-        throw new CloudflareAPIError(
-          "Request timed out",
-          408,
-          [{ code: 0, message: "The request took too long to complete" }]
-        );
+        throw new CloudflareAPIError("Request timed out", 408, [
+          { code: 0, message: "The request took too long to complete" },
+        ]);
       }
 
       if (error.message.includes("Failed to fetch")) {
@@ -86,17 +86,13 @@ export async function fetchCloudflare<T>(
         );
       }
 
-      throw new CloudflareAPIError(
-        error.message,
-        500,
-        [{ code: 0, message: "An unexpected error occurred" }]
-      );
+      throw new CloudflareAPIError(error.message, 500, [
+        { code: 0, message: "An unexpected error occurred" },
+      ]);
     }
 
-    throw new CloudflareAPIError(
-      "Unknown error occurred",
-      500,
-      [{ code: 0, message: "An unexpected error occurred" }]
-    );
+    throw new CloudflareAPIError("Unknown error occurred", 500, [
+      { code: 0, message: "An unexpected error occurred" },
+    ]);
   }
 }
