@@ -12,6 +12,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const zones = formData.getAll("zones");
     const since = formData.get("since");
     const until = formData.get("until");
+    const includeBotManagement = Boolean(formData.get("includeBotManagement")) ?? false;
     const apiToken = context.cloudflare.env.API_TOKEN || formData.get("token");
 
     if (!apiToken || typeof apiToken !== "string") {
@@ -30,7 +31,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       throw new CloudflareAPIError("End date is required", 400);
     }
 
-    const analytics = await getAnalytics(apiToken, zones as string[], since, until);
+    const analytics = await getAnalytics(apiToken, zones as string[], since, until, includeBotManagement);
     return Response.json(analytics);
   } catch (error) {
     console.error("Analytics API Error:", error);

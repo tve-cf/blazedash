@@ -13,6 +13,11 @@ export interface CloudflareResponse<T> {
 export interface Zone {
   id: string;
   name: string;
+  subscription?: Array<{
+    rate_plan?: {
+      name: string;
+    };
+  }>;
 }
 
 export interface DNSRecord {
@@ -66,6 +71,14 @@ export interface AnalyticsData {
             __typename: string;
             dataTransferBytes: number;
             visits: number;
+          };
+        }>;
+        botTotal: Array<{
+          __typename: string;
+          count: number;
+          dimensions: {
+            __typename: string;
+            metric: string;
           };
         }>;
       }>;
