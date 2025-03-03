@@ -1,5 +1,10 @@
 import { useState, useTransition, useRef } from "react";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+} from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { TableControls } from "./table-controls";
 import { FilterDrawer } from "./filter-drawer";
@@ -10,31 +15,36 @@ import { useAnalytics } from "~/context/analytics-context";
 const initialColumns: Column[] = [
   { key: "no", label: "No.", visible: true },
   { key: "metric", label: "Hostname", visible: true },
-  { 
-    key: "total.requests", 
-    label: "Total Requests", 
-    visible: true 
+  {
+    key: "total.requests",
+    label: "Total Requests",
+    visible: true,
   },
-  { 
-    key: "total.dataTransferBytes", 
-    label: "Total Bandwidth", 
-    visible: true 
+  {
+    key: "total.dataTransferBytes",
+    label: "Total Bandwidth",
+    visible: true,
   },
-  { 
-    key: "total.visits", 
-    label: "Total Visits", 
-    visible: true 
+  {
+    key: "total.visits",
+    label: "Total Visits",
+    visible: true,
   },
-  { 
-    key: "api.requests", 
-    label: "API Requests", 
-    visible: true 
+  {
+    key: "api.requests",
+    label: "API Requests",
+    visible: true,
   },
-  { 
-    key: "pageviews.requests", 
-    label: "Page Views", 
-    visible: true 
-  }
+  {
+    key: "pageviews.requests",
+    label: "Page Views",
+    visible: true,
+  },
+  {
+    key: "botTotal.requests",
+    label: "Bot Total",
+    visible: true,
+  },
 ];
 
 interface DataTableProps {
@@ -52,7 +62,12 @@ const initialFilters: Filters = {
   clientTypes: [],
 };
 
-export function DataTable({ data, onFiltersChange, onExport, isExporting }: DataTableProps) {
+export function DataTable({
+  data,
+  onFiltersChange,
+  onExport,
+  isExporting,
+}: DataTableProps) {
   const { selectedZones, dateRange } = useAnalytics();
   const [sortField, setSortField] = useState<string>("total.requests");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -79,14 +94,14 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
   };
 
   const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((acc, part) => acc?.[part], obj) ?? 0;
+    return path.split(".").reduce((acc, part) => acc?.[part], obj) ?? 0;
   };
 
-  const formatValue = (value: any, key: string) => {
+  const formatValue = (value: any, key: string, skip?: string[]) => {
     if (value === undefined || value === null) {
-      return '-';
+      return "-";
     }
-    if (key.includes('dataTransferBytes')) {
+    if (key.includes("dataTransferBytes") && !skip?.includes(key)) {
       // Convert bytes to MB, GB, or TB
       const mb = value / (1000 * 1000);
       if (mb >= 1000000) {
@@ -99,21 +114,21 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
       }
       return `${mb.toFixed(2)} MB`;
     }
-    if (typeof value === 'number') {
+    if (typeof value === "number" && !skip?.includes("numberFormat")) {
       return value.toLocaleString();
     }
     return value;
   };
 
   const filteredData = data
-    .filter((item) =>
-      item.metric.toLowerCase().includes(search.toLowerCase())
-    )
+    .filter((item) => {
+      return item.metric.toLowerCase().includes(search.toLowerCase());
+    })
     .sort((a, b) => {
       const aValue = getNestedValue(a, sortField);
       const bValue = getNestedValue(b, sortField);
       const modifier = sortDirection === "asc" ? 1 : -1;
-      
+
       if (typeof aValue === "number" && typeof bValue === "number") {
         return (aValue - bValue) * modifier;
       }
@@ -122,16 +137,19 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedData = filteredData.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   // Calculate subtotals for numeric columns
   const subtotals = visibleColumns.reduce((acc, column) => {
-    if (column.key === 'metric') {
-      acc[column.key] = 'Subtotal';
+    if (column.key === "metric") {
+      acc[column.key] = "Subtotal";
     } else {
       acc[column.key] = filteredData.reduce((sum, item) => {
         const value = getNestedValue(item, column.key);
-        return typeof value === 'number' ? sum + value : sum;
+        return typeof value === "number" ? sum + value : sum;
       }, 0);
     }
     return acc;
@@ -167,7 +185,8 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
       format,
       columns: visibleColumns,
       getNestedValue,
-      formatValue
+      formatValue: (value, key) =>
+        formatValue(value, key, ["total.dataTransferBytes", "numberFormat"]),
     });
   };
 
@@ -179,7 +198,7 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
 
   const scrollToTop = () => {
     if (tableContainerRef.current) {
-      tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      tableContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -188,7 +207,7 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
       <TableControls
         onSearch={setSearch}
         searchValue={search}
-        columns={columns.filter(col => col.key !== 'no')}
+        columns={columns.filter((col) => col.key !== "no")}
         onToggleColumn={toggleColumn}
         onExport={handleExport}
         isExporting={isExporting}
@@ -203,9 +222,13 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
         onReset={handleReset}
       />
 
-      <div className={`rounded-lg border bg-background ${isPending ? "opacity-70" : ""}`}>
+      <div
+        className={`rounded-lg border bg-background ${
+          isPending ? "opacity-70" : ""
+        }`}
+      >
         <div className="relative">
-          <div 
+          <div
             ref={tableContainerRef}
             onScroll={handleScroll}
             className="max-h-[600px] overflow-auto"
@@ -213,37 +236,41 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
             <table className="w-full table-fixed">
               <colgroup>
                 {visibleColumns.map((column) => (
-                  <col 
-                    key={column.key} 
+                  <col
+                    key={column.key}
                     className={
-                      column.key === 'no' 
-                        ? 'w-[80px]' 
-                        : column.key === 'metric' 
-                          ? 'w-[300px]'
-                          : 'w-[150px]'
-                    } 
+                      column.key === "no"
+                        ? "w-[80px]"
+                        : column.key === "metric"
+                        ? "w-[300px]"
+                        : "w-[150px]"
+                    }
                   />
                 ))}
               </colgroup>
               <thead>
                 <tr className="sticky top-0 z-10 border-b transition-colors text-left bg-primary first:rounded-tl-lg last:rounded-tr-lg">
                   {visibleColumns.map((column, index) => (
-                    <th 
-                      key={column.key} 
+                    <th
+                      key={column.key}
                       className={`px-4 py-3 bg-primary ${
-                        index === 0 ? 'rounded-tl-lg' : ''
+                        index === 0 ? "rounded-tl-lg" : ""
                       } ${
-                        index === visibleColumns.length - 1 ? 'rounded-tr-lg' : ''
+                        index === visibleColumns.length - 1
+                          ? "rounded-tr-lg"
+                          : ""
                       } ${
-                        column.key === 'no' 
-                          ? 'w-[80px]' 
-                          : column.key === 'metric' 
-                            ? 'w-[300px]'
-                            : 'w-[150px]'
+                        column.key === "no"
+                          ? "w-[80px]"
+                          : column.key === "metric"
+                          ? "w-[300px]"
+                          : "w-[150px]"
                       }`}
                     >
-                      {column.key === 'no' ? (
-                        <span className="text-sm font-extrabold text-primary-foreground/80">{column.label}</span>
+                      {column.key === "no" ? (
+                        <span className="text-sm font-extrabold text-primary-foreground/80">
+                          {column.label}
+                        </span>
                       ) : (
                         <button
                           type="button"
@@ -262,19 +289,22 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
                 {paginatedData.map((item, index) => (
                   <tr key={item.metric} className="border-b">
                     {visibleColumns.map((column) => (
-                      <td 
-                        key={`${item.metric}-${column.key}`} 
+                      <td
+                        key={`${item.metric}-${column.key}`}
                         className={`py-3 px-4 truncate ${
-                          column.key === 'no' 
-                            ? 'w-[80px]' 
-                            : column.key === 'metric' 
-                              ? 'w-[300px]'
-                              : 'w-[150px]'
+                          column.key === "no"
+                            ? "w-[80px]"
+                            : column.key === "metric"
+                            ? "w-[300px]"
+                            : "w-[150px]"
                         }`}
                       >
-                        {column.key === 'no' 
+                        {column.key === "no"
                           ? startIndex + index + 1
-                          : formatValue(getNestedValue(item, column.key), column.key)}
+                          : formatValue(
+                              getNestedValue(item, column.key),
+                              column.key
+                            )}
                       </td>
                     ))}
                   </tr>
@@ -288,18 +318,18 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
                 </tr>
                 <tr className="border-t-2 font-medium bg-background sticky bottom-0 z-10 shadow-[0_-1px_10px_0_rgba(0,0,0,0.2)]">
                   {visibleColumns.map((column) => (
-                    <td 
-                      key={`subtotal-${column.key}`} 
+                    <td
+                      key={`subtotal-${column.key}`}
                       className={`py-3 px-4 truncate ${
-                        column.key === 'no' 
-                          ? 'w-[80px]' 
-                          : column.key === 'metric' 
-                            ? 'w-[300px]'
-                            : 'w-[150px]'
+                        column.key === "no"
+                          ? "w-[80px]"
+                          : column.key === "metric"
+                          ? "w-[300px]"
+                          : "w-[150px]"
                       }`}
                     >
-                      {column.key === 'no' 
-                        ? ''
+                      {column.key === "no"
+                        ? ""
                         : formatValue(subtotals[column.key], column.key)}
                     </td>
                   ))}
@@ -353,7 +383,9 @@ export function DataTable({ data, onFiltersChange, onExport, isExporting }: Data
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
             disabled={currentPage === totalPages}
           >
             <ChevronRight className="h-4 w-4" />
