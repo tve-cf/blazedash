@@ -11,6 +11,7 @@ interface AnalyticsVariables {
   apiFilter: any;
   order: string;
   botTotalFilter: any;
+  likelyHumanFilter: any;
 }
 
 const analyticsQuery = (includeBotManagement: boolean = false) => {
@@ -75,19 +76,36 @@ const analyticsQuery = (includeBotManagement: boolean = false) => {
           filter: $botTotalFilter
           limit: 10000
           orderBy: [datetimeHour_ASC]
-        ) {
-          dimensions {
-            ts: datetimeHour
-            metric: clientRequestHTTPHost
+          ) {
+            dimensions {
+              ts: datetimeHour
+              metric: clientRequestHTTPHost
+              __typename
+            }
+            count
+            avg {
+              sampleInterval
+              __typename
+            }
             __typename
           }
-          count
-          avg {
-            sampleInterval
+          likelyHuman: httpRequestsAdaptiveGroups(
+          filter: $likelyHumanFilter
+          limit: 10000
+          orderBy: [datetimeHour_ASC]
+          ) {
+            dimensions {
+              ts: datetimeHour
+              metric: clientRequestHTTPHost
+              __typename
+            }
+            count
+            avg {
+              sampleInterval
+              __typename
+            }
             __typename
           }
-          __typename
-        }
         `
             : ""
         }
@@ -120,6 +138,7 @@ function groupByMetric(data: AnalyticsData) {
             dataTransferBytes: 0,
             visits: 0,
             botTotal: 0,
+            likelyHuman: 0,
           };
         }
 
@@ -144,6 +163,9 @@ function groupByMetric(data: AnalyticsData) {
     }
     if (scope.botTotal) {
       processSection(scope.botTotal, "botTotal");
+    }
+    if (scope.likelyHuman) {
+      processSection(scope.likelyHuman, "likelyHuman");
     }
   });
 
@@ -206,6 +228,13 @@ export async function getAnalytics(
       AND: [
         { datetime_geq: since, datetime_leq: until },
         { botScore_geq: 1, botScore_leq: 99 },
+        { requestSource: "eyeball" },
+      ],
+    },
+    likelyHumanFilter: {
+      AND: [
+        { datetime_geq: since, datetime_leq: until },
+        { botScore_geq: 31, botScore_leq: 100 },
         { requestSource: "eyeball" },
       ],
     },

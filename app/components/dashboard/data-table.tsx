@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Info,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { TableControls } from "./table-controls";
@@ -11,7 +12,9 @@ import { FilterDrawer } from "./filter-drawer";
 import { exportData, type ExportFormat } from "~/lib/export";
 import type { AnalyticsData, Column, Filters } from "~/types/analytics";
 import { useAnalytics } from "~/context/analytics-context";
+import { Tooltip, TooltipContent, TooltipProvider } from "../ui/tooltip";
 import { useEffect } from "react";
+import { TooltipTrigger } from "../ui/tooltip";
 
 const initialColumns: Column[] = [
   { key: "no", label: "No.", visible: true },
@@ -45,6 +48,13 @@ const initialColumns: Column[] = [
     key: "botTotal.requests",
     label: "Bot Total",
     visible: false,
+    tooltip: "Bot total with score from 1-99",
+  },
+  {
+    key: "likelyHuman.requests",
+    label: "Likely Human",
+    visible: false,
+    tooltip: "Likely human with score from 31-100",
   },
 ];
 
@@ -171,7 +181,7 @@ export function DataTable({
     const updatedFilters = {
       ...newFilters,
       // Explicitly remove includeBotManagement from the filters handled by the data table
-      includeBotManagement: undefined
+      includeBotManagement: undefined,
     };
     setFilters(updatedFilters);
     onFiltersChange(updatedFilters);
@@ -181,7 +191,7 @@ export function DataTable({
     const updatedFilters = {
       ...initialFilters,
       // Don't reset the includeBotManagement property as it's handled separately
-      includeBotManagement: undefined
+      includeBotManagement: undefined,
     };
     setFilters(updatedFilters);
     onFiltersChange(updatedFilters);
@@ -218,10 +228,10 @@ export function DataTable({
 
   // Update columns when includeBotManagement changes
   useEffect(() => {
-    setColumns(prevColumns => 
-      prevColumns.map(col => 
-        col.key === "botTotal.requests" 
-          ? { ...col, visible: includeBotManagement } 
+    setColumns((prevColumns) =>
+      prevColumns.map((col) =>
+        col.key === "botTotal.requests" || col.key === "likelyHuman.requests"
+          ? { ...col, visible: includeBotManagement }
           : col
       )
     );
@@ -292,11 +302,13 @@ export function DataTable({
                           : "w-[150px]"
                       }`}
                     >
-                      {column.key === "no" ? (
+                      {column.key === "no" && (
                         <span className="text-sm font-extrabold text-primary-foreground/80">
                           {column.label}
                         </span>
-                      ) : (
+                      )}
+
+                      {column.key !== "no" && !column.tooltip && (
                         <button
                           type="button"
                           onClick={() => handleSort(column.key)}
@@ -305,6 +317,27 @@ export function DataTable({
                           {column.label}
                           <ArrowUpDown className="ml-2 h-4 w-4" />
                         </button>
+                      )}
+
+                      {column.key !== "no" && column.tooltip && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => handleSort(column.key)}
+                              className="inline-flex items-center text-sm font-semibold text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-200"
+                            >
+                              {column.label}
+                              <ArrowUpDown className="ml-2 h-4 w-4" />
+                              <Info className="ml-2 h-4 w-4 text-white" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <span className="font-normal">
+                              {column.tooltip}
+                            </span>
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                     </th>
                   ))}

@@ -10,6 +10,7 @@ import { Header } from "./components/layout/header";
 import { DashboardNav } from "./components/layout/dashboard-nav";
 import { AnalyticsProvider } from "./context/analytics-context";
 import { ThemeProvider, useThemeClass } from "./hooks/use-theme";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 import "./tailwind.css";
 
@@ -28,7 +29,7 @@ export const links: LinksFunction = () => [
 
 function Document({ children }: { children: React.ReactNode }) {
   const themeClass = useThemeClass();
-  
+
   return (
     <html lang="en" className={themeClass}>
       <head>
@@ -51,13 +52,15 @@ export default function App() {
     <ThemeProvider defaultTheme="light">
       <Document>
         <AnalyticsProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <DashboardNav />
-            <main className="flex-1 p-4 w-full">
-              <Outlet />
-            </main>
-          </div>
+          <TooltipProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <DashboardNav />
+              <main className="flex-1 p-4 w-full">
+                <Outlet />
+              </main>
+            </div>
+          </TooltipProvider>
         </AnalyticsProvider>
       </Document>
     </ThemeProvider>

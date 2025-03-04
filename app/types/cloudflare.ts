@@ -74,6 +74,14 @@ export interface AnalyticsData {
             metric: string;
           };
         }>;
+        likelyHuman: Array<{
+          __typename: string;
+          count: number;
+          dimensions: {
+            __typename: string;
+            metric: string;
+          };
+        }>;
       }>;
     };
   };

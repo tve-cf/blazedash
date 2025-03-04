@@ -15,6 +15,7 @@ export interface Column {
   key: string;
   label: string;
   visible: boolean;
+  tooltip?: string;
 }
 
 export interface Filters {
