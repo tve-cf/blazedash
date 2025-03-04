@@ -65,10 +65,7 @@ export function ComparisonControls({
           </SelectContent>
         </Select>
 
-        <DateRangePicker
-          onChange={onDateRangeChange}
-          className="flex-1"
-        />
+        <DateRangePicker onChange={onDateRangeChange} className="flex-1" />
       </div>
     </div>
   );

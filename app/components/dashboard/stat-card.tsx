@@ -33,7 +33,7 @@ export function StatCard({
           <span
             className={cn(
               "mr-1",
-              trend === "up" ? "text-green-500" : "text-red-500"
+              trend === "up" ? "text-green-500" : "text-red-500",
             )}
           >
             {trend === "up" ? "↑" : "↓"}
@@ -41,7 +41,7 @@ export function StatCard({
           <span
             className={cn(
               "font-medium",
-              trend === "up" ? "text-green-500" : "text-red-500"
+              trend === "up" ? "text-green-500" : "text-red-500",
             )}
           >
             {trendValue}

@@ -12,7 +12,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const zones = formData.getAll("zones");
     const since = formData.get("since");
     const until = formData.get("until");
-    const includeBotManagement = Boolean(formData.get("includeBotManagement")) ?? false;
+    const includeBotManagement =
+      Boolean(formData.get("includeBotManagement")) ?? false;
     const apiToken = context.cloudflare.env.API_TOKEN || formData.get("token");
 
     if (!apiToken || typeof apiToken !== "string") {
@@ -31,26 +32,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
       throw new CloudflareAPIError("End date is required", 400);
     }
 
-    const analytics = await getAnalytics(apiToken, zones as string[], since, until, includeBotManagement);
+    const analytics = await getAnalytics(
+      apiToken,
+      zones as string[],
+      since,
+      until,
+      includeBotManagement,
+    );
     return Response.json(analytics);
   } catch (error) {
     console.error("Analytics API Error:", error);
     if (error instanceof CloudflareAPIError) {
       return Response.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: error.message,
-          errors: error.errors 
-        }, 
-        { status: error.status || 500 }
+          errors: error.errors,
+        },
+        { status: error.status || 500 },
       );
     }
     return Response.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : "An unknown error occurred" 
-      }, 
-      { status: 500 }
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      },
+      { status: 500 },
     );
   }
 }

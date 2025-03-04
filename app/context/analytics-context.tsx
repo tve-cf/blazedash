@@ -13,7 +13,7 @@ interface AnalyticsContextType {
 }
 
 const AnalyticsContext = createContext<AnalyticsContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
@@ -38,7 +38,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
               label: zone.name,
               value: zone.id,
               subscriptions: zone.subscriptions,
-            }))
+            })),
           );
         } catch (error) {
           console.error("Error parsing zones:", error);

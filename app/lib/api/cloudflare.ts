@@ -13,7 +13,7 @@ export function cfClient(token: string) {
 export async function fetchCloudflare<T>(
   endpoint: string,
   apiToken: string,
-  schema: z.ZodType<T>
+  schema: z.ZodType<T>,
 ): Promise<T> {
   if (!apiToken) {
     throw new CloudflareAPIError("API token is required", 400);
@@ -36,7 +36,7 @@ export async function fetchCloudflare<T>(
       throw new CloudflareAPIError(
         "Invalid response format from Cloudflare API",
         response.status,
-        [{ code: 0, message: "Response validation failed" }]
+        [{ code: 0, message: "Response validation failed" }],
       );
     }
 
@@ -45,7 +45,7 @@ export async function fetchCloudflare<T>(
       throw new CloudflareAPIError(
         error?.message || `API request failed with status ${response.status}`,
         response.status,
-        parsedResponse.data.errors
+        parsedResponse.data.errors,
       );
     }
 
@@ -55,7 +55,7 @@ export async function fetchCloudflare<T>(
       throw new CloudflareAPIError(
         "Invalid response data format",
         response.status,
-        [{ code: 0, message: "Response data validation failed" }]
+        [{ code: 0, message: "Response data validation failed" }],
       );
     }
 
@@ -82,7 +82,7 @@ export async function fetchCloudflare<T>(
         throw new CloudflareAPIError(
           "Unable to connect to Cloudflare API",
           503,
-          [{ code: 0, message: "Please check your internet connection" }]
+          [{ code: 0, message: "Please check your internet connection" }],
         );
       }
 

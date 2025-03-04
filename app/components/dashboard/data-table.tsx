@@ -152,27 +152,30 @@ export function DataTable({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(
     startIndex,
-    startIndex + itemsPerPage
+    startIndex + itemsPerPage,
   );
 
   // Calculate subtotals for numeric columns
-  const subtotals = visibleColumns.reduce((acc, column) => {
-    if (column.key === "metric") {
-      acc[column.key] = "Subtotal";
-    } else {
-      acc[column.key] = filteredData.reduce((sum, item) => {
-        const value = getNestedValue(item, column.key);
-        return typeof value === "number" ? sum + value : sum;
-      }, 0);
-    }
-    return acc;
-  }, {} as Record<string, any>);
+  const subtotals = visibleColumns.reduce(
+    (acc, column) => {
+      if (column.key === "metric") {
+        acc[column.key] = "Subtotal";
+      } else {
+        acc[column.key] = filteredData.reduce((sum, item) => {
+          const value = getNestedValue(item, column.key);
+          return typeof value === "number" ? sum + value : sum;
+        }, 0);
+      }
+      return acc;
+    },
+    {} as Record<string, any>,
+  );
 
   const toggleColumn = (key: string) => {
     setColumns(
       columns.map((col) =>
-        col.key === key ? { ...col, visible: !col.visible } : col
-      )
+        col.key === key ? { ...col, visible: !col.visible } : col,
+      ),
     );
   };
 
@@ -232,8 +235,8 @@ export function DataTable({
       prevColumns.map((col) =>
         col.key === "botTotal.requests" || col.key === "likelyHuman.requests"
           ? { ...col, visible: includeBotManagement }
-          : col
-      )
+          : col,
+      ),
     );
   }, [includeBotManagement]);
 
@@ -277,8 +280,8 @@ export function DataTable({
                       column.key === "no"
                         ? "w-[80px]"
                         : column.key === "metric"
-                        ? "w-[300px]"
-                        : "w-[150px]"
+                          ? "w-[300px]"
+                          : "w-[150px]"
                     }
                   />
                 ))}
@@ -298,8 +301,8 @@ export function DataTable({
                         column.key === "no"
                           ? "w-[80px]"
                           : column.key === "metric"
-                          ? "w-[300px]"
-                          : "w-[150px]"
+                            ? "w-[300px]"
+                            : "w-[150px]"
                       }`}
                     >
                       {column.key === "no" && (
@@ -353,15 +356,15 @@ export function DataTable({
                           column.key === "no"
                             ? "w-[80px]"
                             : column.key === "metric"
-                            ? "w-[300px]"
-                            : "w-[150px]"
+                              ? "w-[300px]"
+                              : "w-[150px]"
                         }`}
                       >
                         {column.key === "no"
                           ? startIndex + index + 1
                           : formatValue(
                               getNestedValue(item, column.key),
-                              column.key
+                              column.key,
                             )}
                       </td>
                     ))}
@@ -382,8 +385,8 @@ export function DataTable({
                         column.key === "no"
                           ? "w-[80px]"
                           : column.key === "metric"
-                          ? "w-[300px]"
-                          : "w-[150px]"
+                            ? "w-[300px]"
+                            : "w-[150px]"
                       }`}
                     >
                       {column.key === "no"

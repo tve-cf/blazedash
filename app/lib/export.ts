@@ -12,7 +12,14 @@ interface ExportOptions {
   formatValue: (value: any, key: string) => string;
 }
 
-export function exportData({ data, filename, format, columns, getNestedValue, formatValue }: ExportOptions) {
+export function exportData({
+  data,
+  filename,
+  format,
+  columns,
+  getNestedValue,
+  formatValue,
+}: ExportOptions) {
   switch (format) {
     case "csv":
       exportToCSV({ data, filename, columns, getNestedValue, formatValue });
@@ -23,10 +30,18 @@ export function exportData({ data, filename, format, columns, getNestedValue, fo
   }
 }
 
-function exportToCSV({ data, filename, columns, getNestedValue, formatValue }: Omit<ExportOptions, "format">) {
-  const visibleColumns = columns.filter(col => col.visible && col.key !== 'no');
-  const headers = visibleColumns.map(col => col.label);
-  
+function exportToCSV({
+  data,
+  filename,
+  columns,
+  getNestedValue,
+  formatValue,
+}: Omit<ExportOptions, "format">) {
+  const visibleColumns = columns.filter(
+    (col) => col.visible && col.key !== "no",
+  );
+  const headers = visibleColumns.map((col) => col.label);
+
   const csvContent = [
     headers.join(","),
     ...data.map((row) =>
@@ -36,40 +51,53 @@ function exportToCSV({ data, filename, columns, getNestedValue, formatValue }: O
           // Escape commas and quotes in the value
           return `"${String(value).replace(/"/g, '""')}"`;
         })
-        .join(",")
+        .join(","),
     ),
   ].join("\n");
 
   downloadFile(
-    new Blob([csvContent], { type: "text/csv;charset=utf-8;" }), 
-    `${filename}.csv`
+    new Blob([csvContent], { type: "text/csv;charset=utf-8;" }),
+    `${filename}.csv`,
   );
 }
 
-function exportToExcel({ data, filename, columns, getNestedValue, formatValue }: Omit<ExportOptions, "format">) {
-  const visibleColumns = columns.filter(col => col.visible && col.key !== 'no');
-  
+function exportToExcel({
+  data,
+  filename,
+  columns,
+  getNestedValue,
+  formatValue,
+}: Omit<ExportOptions, "format">) {
+  const visibleColumns = columns.filter(
+    (col) => col.visible && col.key !== "no",
+  );
+
   // Transform data for Excel
-  const excelData = data.map(row => {
+  const excelData = data.map((row) => {
     const transformedRow: Record<string, any> = {};
-    visibleColumns.forEach(col => {
-      transformedRow[col.label] = formatValue(getNestedValue(row, col.key), col.key);
+    visibleColumns.forEach((col) => {
+      transformedRow[col.label] = formatValue(
+        getNestedValue(row, col.key),
+        col.key,
+      );
     });
     return transformedRow;
   });
 
   const worksheet = XLSX.utils.json_to_sheet(excelData);
-  
+
   // Set column widths for data
-  worksheet['!cols'] = visibleColumns.map(() => ({ wch: 20 }));
+  worksheet["!cols"] = visibleColumns.map(() => ({ wch: 20 }));
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Analytics Data");
-  
+
   const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
   downloadFile(
-    new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), 
-    `${filename}.xlsx`
+    new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }),
+    `${filename}.xlsx`,
   );
 }
 

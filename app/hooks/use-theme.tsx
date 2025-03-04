@@ -23,7 +23,9 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 function getSystemTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 export function ThemeProvider({
@@ -39,13 +41,13 @@ export function ThemeProvider({
       return defaultTheme;
     }
   });
-  
+
   const [systemTheme, setSystemTheme] = useState<Theme>(getSystemTheme());
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => setSystemTheme(getSystemTheme());
-    
+
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);

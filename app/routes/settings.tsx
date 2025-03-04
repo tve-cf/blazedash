@@ -56,7 +56,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!apiToken) {
     return Response.json(
       { success: false, error: "API token is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -76,7 +76,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         success: false,
         error: error instanceof Error ? error.message : "Failed to load zones",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -114,7 +114,7 @@ export default function Settings() {
     if (actionData?.success) {
       localStorage.setItem(
         "cfApiToken",
-        hasEnvToken ? "TOKEN_SET_VIA_ENV" : apiToken
+        hasEnvToken ? "TOKEN_SET_VIA_ENV" : apiToken,
       );
       if ("zones" in actionData) {
         localStorage.setItem("cfZones", JSON.stringify(actionData.zones));
@@ -150,7 +150,7 @@ export default function Settings() {
                       <RefreshCw
                         className={cn(
                           "h-4 w-4 mr-2",
-                          isLoading && "animate-spin"
+                          isLoading && "animate-spin",
                         )}
                       />
                       Reload Zones

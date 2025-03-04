@@ -2,10 +2,10 @@ export class CloudflareAPIError extends Error {
   constructor(
     message: string,
     public status?: number,
-    public errors?: Array<{ code: number; message: string }>
+    public errors?: Array<{ code: number; message: string }>,
   ) {
     super(message);
-    this.name = 'CloudflareAPIError';
+    this.name = "CloudflareAPIError";
   }
 }
 
@@ -24,23 +24,28 @@ export function getErrorMessage(error: unknown): string {
 
     // If we have specific Cloudflare error messages, use those
     if (error.errors?.length) {
-      const errorMessages = error.errors.map(e => {
+      const errorMessages = error.errors.map((e) => {
         let message = e.message;
         switch (e.code) {
           case 7000:
-            message = "Invalid API endpoint. Please try again or contact support if the issue persists.";
+            message =
+              "Invalid API endpoint. Please try again or contact support if the issue persists.";
             break;
           case 7003:
-            message = "Invalid request method. Please try again or contact support if the issue persists.";
+            message =
+              "Invalid request method. Please try again or contact support if the issue persists.";
             break;
           case 9103:
-            message = "Invalid zone identifier. Please select a different zone or refresh the page.";
+            message =
+              "Invalid zone identifier. Please select a different zone or refresh the page.";
             break;
           case 9109:
-            message = "Invalid hostname. Please select a different hostname or refresh the page.";
+            message =
+              "Invalid hostname. Please select a different hostname or refresh the page.";
             break;
           case 9207:
-            message = "Invalid date range. Please try again with a different date range.";
+            message =
+              "Invalid date range. Please try again with a different date range.";
             break;
         }
         return `Error ${e.code}: ${message}`;
@@ -50,7 +55,7 @@ export function getErrorMessage(error: unknown): string {
 
     return error.message;
   }
-  
+
   if (error instanceof Error) {
     if (error.message.includes("Failed to fetch")) {
       return "Unable to connect to Cloudflare API. Please check your internet connection and try again.";
@@ -66,6 +71,6 @@ export function getErrorMessage(error: unknown): string {
     }
     return error.message;
   }
-  
+
   return "An unexpected error occurred. Please try again later.";
 }

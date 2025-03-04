@@ -13,9 +13,7 @@ export function SelectionRequired({ message }: SelectionRequiredProps) {
         </div>
         <div className="space-y-2">
           <h3 className="text-lg font-medium">Selection Required</h3>
-          <p className="text-sm text-muted-foreground max-w-md">
-            {message}
-          </p>
+          <p className="text-sm text-muted-foreground max-w-md">{message}</p>
         </div>
       </div>
     </div>

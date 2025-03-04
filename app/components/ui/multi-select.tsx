@@ -37,10 +37,15 @@ export function MultiSelect({
         <Button
           variant="outline"
           role="combobox"
-          className={cn("w-[300px] justify-between text-left font-normal", className)}
+          className={cn(
+            "w-[300px] justify-between text-left font-normal",
+            className,
+          )}
         >
           <span className="truncate">
-            {selected.length === 0 ? placeholder : `${selected.length} selected`}
+            {selected.length === 0
+              ? placeholder
+              : `${selected.length} selected`}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -53,8 +58,9 @@ export function MultiSelect({
             <CommandGroup>
               <CommandItem
                 onSelect={() => {
-                  const allValues = options.map(opt => opt.value);
-                  const newSelected = selected.length === options.length ? [] : allValues;
+                  const allValues = options.map((opt) => opt.value);
+                  const newSelected =
+                    selected.length === options.length ? [] : allValues;
                   onChange(newSelected);
                 }}
               >
@@ -63,13 +69,15 @@ export function MultiSelect({
                     "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                     selected.length === options.length
                       ? "bg-primary text-primary-foreground"
-                      : "opacity-50"
+                      : "opacity-50",
                   )}
                 >
                   <Check
                     className={cn(
                       "h-4 w-4",
-                      selected.length === options.length ? "opacity-100" : "opacity-0"
+                      selected.length === options.length
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                 </div>
@@ -90,13 +98,15 @@ export function MultiSelect({
                       "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                       selected.includes(option.value)
                         ? "bg-primary text-primary-foreground"
-                        : "opacity-50"
+                        : "opacity-50",
                     )}
                   >
                     <Check
                       className={cn(
                         "h-4 w-4",
-                        selected.includes(option.value) ? "opacity-100" : "opacity-0"
+                        selected.includes(option.value)
+                          ? "opacity-100"
+                          : "opacity-0",
                       )}
                     />
                   </div>

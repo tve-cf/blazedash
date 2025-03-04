@@ -19,9 +19,7 @@ const metrics = ["Requests", "Page Views", "Data Transfer"];
 export function ComparisonTable({ data, timeUnit }: ComparisonTableProps) {
   // Get unique hostnames from all periods
   const hostnames = Array.from(
-    new Set(
-      data.flatMap((period) => period.data.map((item) => item.hostname))
-    )
+    new Set(data.flatMap((period) => period.data.map((item) => item.hostname))),
   ).sort();
 
   return (
@@ -54,7 +52,7 @@ export function ComparisonTable({ data, timeUnit }: ComparisonTableProps) {
                   </TableCell>
                   {data.map((period) => {
                     const hostData = period.data.find(
-                      (item) => item.hostname === hostname
+                      (item) => item.hostname === hostname,
                     );
                     return (
                       <TableCell key={period.period} className="text-right">
@@ -62,8 +60,8 @@ export function ComparisonTable({ data, timeUnit }: ComparisonTableProps) {
                           ? metric === "Requests"
                             ? hostData.metrics.requests.toLocaleString()
                             : metric === "Page Views"
-                            ? hostData.metrics.pageViews.toLocaleString()
-                            : hostData.metrics.dataTransfer
+                              ? hostData.metrics.pageViews.toLocaleString()
+                              : hostData.metrics.dataTransfer
                           : "-"}
                       </TableCell>
                     );

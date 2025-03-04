@@ -12,10 +12,13 @@ export default function Performance() {
     <div className="relative mx-auto max-w-7xl">
       <div className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-10 blur-sm" />
       <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Performance Dashboard</h1>
+        <h1 className="text-4xl font-bold tracking-tight">
+          Performance Dashboard
+        </h1>
         <p className="max-w-2xl text-lg text-muted-foreground">
           Detailed performance analytics and optimization tools are coming soon.
-          Get ready for in-depth insights into your application's performance metrics.
+          Get ready for in-depth insights into your application's performance
+          metrics.
         </p>
       </div>
     </div>

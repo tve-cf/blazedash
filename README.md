@@ -13,9 +13,11 @@ The dashboard uses the Cloudflare API to fetch real-time data about your domains
 ## Deployment
 
 ### Cloudflare Pages
+
 You can fork this repo and use Cloudflare Pages CI to deploy your own project.
 
 ### Wrangler
+
 You can also use Wrangler to deploy this app.
 
 ```sh
@@ -24,7 +26,8 @@ npm run deploy
 ```
 
 ## API Token
-- You can configure the API token through environment variables or the settings interface. For production deployments, it's best practice to use environment variables for better security and easier token management. 
+
+- You can configure the API token through environment variables or the settings interface. For production deployments, it's best practice to use environment variables for better security and easier token management.
 - Additionally, implementing Cloudflare Access is advised in production to enhance authentication security.
 
 ## Development

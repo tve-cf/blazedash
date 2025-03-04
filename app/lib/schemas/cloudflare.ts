@@ -17,7 +17,7 @@ export const ZoneSchema = CloudflareResponseSchema.extend({
     z.object({
       id: z.string(),
       name: z.string(),
-    })
+    }),
   ),
 });
 
@@ -28,6 +28,6 @@ export const DNSRecordSchema = CloudflareResponseSchema.extend({
       type: z.enum(["A", "AAAA", "CNAME"]),
       name: z.string(),
       content: z.string(),
-    })
+    }),
   ),
 });

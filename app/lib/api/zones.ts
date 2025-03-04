@@ -25,7 +25,7 @@ export async function getZones(apiToken: string) {
 
     if (sub.zone) {
       const zoneIndex = zonesWithSubscriptions.findIndex(
-        (z) => z.id === sub.zone.id
+        (z) => z.id === sub.zone.id,
       );
 
       zones.result.forEach((zone) => {

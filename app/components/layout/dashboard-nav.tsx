@@ -25,7 +25,7 @@ export function DashboardNav() {
                   "flex items-center border-b-2 px-1 py-4 text-sm font-medium",
                   isActive
                     ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:border-gray-300 hover:text-foreground"
+                    : "border-transparent text-muted-foreground hover:border-gray-300 hover:text-foreground",
                 )}
               >
                 <item.icon className="mr-2 h-4 w-4" />

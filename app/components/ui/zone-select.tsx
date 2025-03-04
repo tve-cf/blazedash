@@ -45,7 +45,7 @@ export function ZoneSelect({
   const [search, setSearch] = React.useState("");
 
   const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(search.toLowerCase())
+    option.label.toLowerCase().includes(search.toLowerCase()),
   );
 
   const isAtLimit = selected.length >= 10;
@@ -61,7 +61,7 @@ export function ZoneSelect({
             disabled={disabled}
             className={cn(
               "w-[300px] justify-between text-left font-normal",
-              className
+              className,
             )}
           >
             <span className="truncate">
@@ -103,7 +103,7 @@ export function ZoneSelect({
                   "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                   selected.length === Math.min(options.length, 10)
                     ? "bg-primary text-primary-foreground"
-                    : "opacity-50"
+                    : "opacity-50",
                 )}
               >
                 <Check
@@ -111,7 +111,7 @@ export function ZoneSelect({
                     "h-4 w-4",
                     selected.length === Math.min(options.length, 10)
                       ? "opacity-100"
-                      : "opacity-0"
+                      : "opacity-0",
                   )}
                 />
               </div>
@@ -127,7 +127,7 @@ export function ZoneSelect({
                     "cursor-pointer",
                     !selected.includes(option.value) &&
                       isAtLimit &&
-                      "opacity-50"
+                      "opacity-50",
                   )}
                   onSelect={(e) => {
                     e.preventDefault();
@@ -143,7 +143,7 @@ export function ZoneSelect({
                       "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                       selected.includes(option.value)
                         ? "bg-primary text-primary-foreground"
-                        : "opacity-50"
+                        : "opacity-50",
                     )}
                   >
                     <Check
@@ -151,7 +151,7 @@ export function ZoneSelect({
                         "h-4 w-4",
                         selected.includes(option.value)
                           ? "opacity-100"
-                          : "opacity-0"
+                          : "opacity-0",
                       )}
                     />
                   </div>

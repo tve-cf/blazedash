@@ -22,10 +22,10 @@ export function FilterDrawer({
 }: FilterDrawerProps) {
   const handleFilterChange = (newPartialFilters: Partial<Filters>) => {
     const { includeBotManagement } = filters;
-    onFiltersChange({ 
-      ...filters, 
+    onFiltersChange({
+      ...filters,
       ...newPartialFilters,
-      includeBotManagement
+      includeBotManagement,
     });
   };
 

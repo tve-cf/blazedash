@@ -8,12 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - 2025-01-03: Added month picker mode to date range picker with year navigation and quick month selection
 - 2025-01-03: Added support for setting API token via environment variables
 - 2025-01-03: Added page size selector to analytics table (10, 100, 500, 1000 rows)
 - 2025-01-03: Added floating scroll to top button in analytics table
 
 ### Changed
+
 - 2025-01-03: Enhanced analytics table UI:
   - Added sticky header and footer with improved scrolling
   - Fixed column widths to prevent resizing when navigating pages

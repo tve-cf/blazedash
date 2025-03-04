@@ -1,4 +1,4 @@
-import type { Zone, DNSRecord, AnalyticsData } from './cloudflare';
+import type { Zone, DNSRecord, AnalyticsData } from "./cloudflare";
 
 interface SuccessResponse {
   success: true;

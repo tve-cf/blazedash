@@ -13,7 +13,14 @@ import {
 } from "~/components/ui/tooltip";
 
 export function Header() {
-  const { selectedZones, setSelectedZones, dateRange, setDateRange, zones, hasApiToken } = useAnalytics();
+  const {
+    selectedZones,
+    setSelectedZones,
+    dateRange,
+    setDateRange,
+    zones,
+    hasApiToken,
+  } = useAnalytics();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -28,7 +35,10 @@ export function Header() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <Link to="/settings" className="flex items-center text-yellow-500">
+                  <Link
+                    to="/settings"
+                    className="flex items-center text-yellow-500"
+                  >
                     <AlertCircle className="h-5 w-5 mr-1" />
                     <span className="text-sm">API Token Required</span>
                   </Link>
@@ -47,7 +57,7 @@ export function Header() {
             className="w-[250px]"
             disabled={!hasApiToken}
           />
-          <DateRangePicker 
+          <DateRangePicker
             className="w-[300px]"
             onChange={(range) => setDateRange(range)}
           />

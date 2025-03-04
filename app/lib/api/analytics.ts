@@ -178,7 +178,7 @@ export async function getAnalytics(
   zoneIds: string[],
   since: string,
   until: string,
-  includeBotManagement: boolean = false
+  includeBotManagement: boolean = false,
 ) {
   const variables: AnalyticsVariables = {
     zoneTags: zoneIds,
@@ -244,7 +244,7 @@ export async function getAnalytics(
   const data = await queryGraphQL<AnalyticsData, AnalyticsVariables>(
     apiToken,
     analyticsQuery(includeBotManagement),
-    variables
+    variables,
   );
 
   // Group the data by metric

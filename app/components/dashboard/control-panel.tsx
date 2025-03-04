@@ -33,10 +33,7 @@ export function ControlPanel({ onFiltersChange }: ControlPanelProps) {
   return (
     <div className="mb-6 space-y-4">
       <div className="flex flex-wrap items-center gap-4">
-        <Button
-          variant="outline"
-          onClick={() => setIsFilterDrawerOpen(true)}
-        >
+        <Button variant="outline" onClick={() => setIsFilterDrawerOpen(true)}>
           <Filter className="mr-2 h-4 w-4" />
           Filters
         </Button>
