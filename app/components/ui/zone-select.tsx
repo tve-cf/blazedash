@@ -16,10 +16,12 @@ import {
   TooltipTrigger,
 } from "./tooltip";
 import { cn } from "~/lib/utils";
+import { Subscription } from "cloudflare/resources/shared.mjs";
 
 interface Option {
   label: string;
   value: string;
+  subscriptions: Subscription[];
 }
 
 interface ZoneSelectProps {
@@ -57,12 +59,17 @@ export function ZoneSelect({
             role="combobox"
             aria-expanded={open}
             disabled={disabled}
-            className={cn("w-[300px] justify-between text-left font-normal", className)}
+            className={cn(
+              "w-[300px] justify-between text-left font-normal",
+              className
+            )}
           >
             <span className="truncate">
               {selected.length === 0
                 ? placeholder
-                : `${selected.length} zone${selected.length === 1 ? "" : "s"} selected`}
+                : `${selected.length} zone${
+                    selected.length === 1 ? "" : "s"
+                  } selected`}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -83,19 +90,30 @@ export function ZoneSelect({
               onSelect={(e) => {
                 e.preventDefault();
                 if (isAtLimit) return;
-                const allValues = options.slice(0, 10).map(opt => opt.value);
-                const newSelected = selected.length === Math.min(options.length, 10) ? [] : allValues;
+                const allValues = options.slice(0, 10).map((opt) => opt.value);
+                const newSelected =
+                  selected.length === Math.min(options.length, 10)
+                    ? []
+                    : allValues;
                 onChange(newSelected);
               }}
             >
-              <div className={cn(
-                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                selected.length === Math.min(options.length, 10) ? "bg-primary text-primary-foreground" : "opacity-50"
-              )}>
-                <Check className={cn(
-                  "h-4 w-4",
-                  selected.length === Math.min(options.length, 10) ? "opacity-100" : "opacity-0"
-                )} />
+              <div
+                className={cn(
+                  "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                  selected.length === Math.min(options.length, 10)
+                    ? "bg-primary text-primary-foreground"
+                    : "opacity-50"
+                )}
+              >
+                <Check
+                  className={cn(
+                    "h-4 w-4",
+                    selected.length === Math.min(options.length, 10)
+                      ? "opacity-100"
+                      : "opacity-0"
+                  )}
+                />
               </div>
               Select All (Max 10)
             </DropdownMenuItem>
@@ -105,7 +123,12 @@ export function ZoneSelect({
               filteredOptions.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  className={cn("cursor-pointer", !selected.includes(option.value) && isAtLimit && "opacity-50")}
+                  className={cn(
+                    "cursor-pointer",
+                    !selected.includes(option.value) &&
+                      isAtLimit &&
+                      "opacity-50"
+                  )}
                   onSelect={(e) => {
                     e.preventDefault();
                     if (!selected.includes(option.value) && isAtLimit) return;
@@ -115,16 +138,42 @@ export function ZoneSelect({
                     onChange(newSelected);
                   }}
                 >
-                  <div className={cn(
-                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                    selected.includes(option.value) ? "bg-primary text-primary-foreground" : "opacity-50"
-                  )}>
-                    <Check className={cn(
-                      "h-4 w-4",
-                      selected.includes(option.value) ? "opacity-100" : "opacity-0"
-                    )} />
+                  <div
+                    className={cn(
+                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                      selected.includes(option.value)
+                        ? "bg-primary text-primary-foreground"
+                        : "opacity-50"
+                    )}
+                  >
+                    <Check
+                      className={cn(
+                        "h-4 w-4",
+                        selected.includes(option.value)
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
                   </div>
-                  {option.label}
+                  {option.label} -{" "}
+                  {option.subscriptions && option.subscriptions.length > 0
+                    ? option.subscriptions
+                        .map((sub) => {
+                          const planId = sub.rate_plan?.id as string;
+                          if (!planId) return null;
+                          if (
+                            planId === "enterprise" ||
+                            planId.startsWith("cf_ent_")
+                          ) {
+                            return "Ent";
+                          } else if (planId === "bot_zone_ent") {
+                            return "BotM";
+                          }
+                          return null;
+                        })
+                        .filter(Boolean)
+                        .join(", ") || "No subscription"
+                    : "Free"}
                 </DropdownMenuItem>
               ))
             )}
@@ -143,12 +192,17 @@ export function ZoneSelect({
               <Info className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" align="center" className="max-w-[200px]">
+          <TooltipContent
+            side="bottom"
+            align="center"
+            className="max-w-[200px]"
+          >
             <p>
-              {isAtLimit 
-                ? "Maximum of 10 zones reached" 
-                : `You can select up to ${10 - selected.length} more zone${10 - selected.length === 1 ? "" : "s"}`
-              }
+              {isAtLimit
+                ? "Maximum of 10 zones reached"
+                : `You can select up to ${10 - selected.length} more zone${
+                    10 - selected.length === 1 ? "" : "s"
+                  }`}
             </p>
           </TooltipContent>
         </Tooltip>
