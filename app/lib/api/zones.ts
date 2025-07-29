@@ -6,6 +6,11 @@ import { ZoneWithSubscription } from "~/types/cloudflare";
 
 export async function getZones(apiToken: string) {
   const accountList = await cfClient(apiToken).accounts.list();
+
+  if (accountList.result.length === 0) {
+    throw new Error("No accounts found");
+  }
+
   const accountId = accountList.result[0].id;
 
   const subscription = await cfClient(apiToken).accounts.subscriptions.get({
